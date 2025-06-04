@@ -3,13 +3,16 @@ using UnityEngine;
 
 public class SampleAnimationController : MonoBehaviour
 {
-    public Animator animatior;
+    public Animator animator;
     public float moveSpeed = 1f;
     public bool crouch = false;
 
+    public SampleDropItemSensor dropItemSensor;
+
     private void Awake()
     {
-        animatior = GetComponent<Animator>();
+        animator = GetComponent<Animator>();
+        dropItemSensor = GetComponent<SampleDropItemSensor>();
     }
 
     private void Update()
@@ -19,26 +22,33 @@ public class SampleAnimationController : MonoBehaviour
         float vertical = Input.GetAxis("Vertical");
         Vector2 inputMove = new Vector2(horizontal, vertical);
 
-        animatior.SetFloat("Magnitude", inputMove.magnitude);
-        animatior.SetFloat("Horizontal", horizontal);
-        animatior.SetFloat("Vertical", vertical);
-
         // Toggle Crouch
-        crouch = Input.GetKey(KeyCode.LeftControl) ? !crouch : crouch;
-        animatior.SetFloat("Crouch", crouch ? 1f : 0f);
+        if (Input.GetKeyDown(KeyCode.LeftControl)) { crouch = !crouch; }
 
         // Running
         bool running = Input.GetKey(KeyCode.LeftShift) && inputMove.magnitude > 0.1f;
-        moveSpeed = running ? 3f : 1f;
-        animatior.SetFloat("Running", running ? 1f : 0f);
+        moveSpeed = crouch ? 0.5f : (running ? 3f : 1f);
 
         // Move the character
         transform.position += new Vector3(inputMove.x, 0, inputMove.y) * moveSpeed * Time.deltaTime;
 
 
-        // Action
-        bool action = Input.GetMouseButtonDown(0); // Left mouse button
-        animatior.SetFloat("Action", action ? 1f : 0f);
-    }
+        if (Input.GetKeyDown(KeyCode.Alpha1)) // 숫자 1번키
+        {
+            animator.SetTrigger("Action Trigger");
+            animator.SetInteger("Action Index", 1);
+            dropItemSensor.OverlapItemDestroy();
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            animator.SetTrigger("Action Trigger");
+            animator.SetInteger("Action Index", 2);
+        }
 
+        animator.SetFloat("Magnitude", inputMove.magnitude);
+        animator.SetFloat("Horizontal", horizontal);
+        animator.SetFloat("Vertical", vertical);
+        animator.SetFloat("Running", running ? 1f : 0f);
+        animator.SetFloat("Crouch", crouch ? 1f : 0f);
+    }
 }
