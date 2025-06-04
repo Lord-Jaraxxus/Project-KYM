@@ -34,7 +34,7 @@ public class SampleCharacter : MonoBehaviour
     {
         if (isPoison)
         {
-            timer += Time.deltaTime;
+            timer += Time.fixedDeltaTime;
             if (timer >= 0.5f)
             {
                 hp -= 10;

@@ -51,5 +51,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Project KYM.sln"
+    "dotnet.defaultSolution": "Project KYM.sln",
+    "dotnet.preferCSharpExtension": true
 }
