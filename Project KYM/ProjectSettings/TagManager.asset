@@ -6,6 +6,7 @@ TagManager:
   tags:
   - ITEM_BOX
   - Drop Item
+  - Bullet
   layers:
   - Default
   - TransparentFX
