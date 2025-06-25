@@ -1,11 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations.Rigging; // Rigging 관련 네임스페이스 추가 (필요한 경우)
 
 namespace KYM
 {
     public class CharacterBase : MonoBehaviour
     {
+        [SerializeField] private GameObject bulletPrefeb; // 총알 프리팹
+        [SerializeField] private Transform bulletSpawnPoint; // 총알 발사 위치
+
+        [SerializeField] private Rig aimingRig; // 조준 Rig (필요한 경우)
+        [SerializeField] private Transform aimingPoint; // 조준 포인트 (필요한 경우)
+
+        public Vector3 AimingPoint 
+        {
+            set 
+            {
+                aimingPoint.transform.position = value; // 조준 포인트 위치 설정
+            }
+        }
+
         public bool IsWalk { get; set; } = false;
         public bool IsCrouch { get; set; } = false;
         public bool IsAiming { get; set; } = false;
@@ -38,6 +53,8 @@ namespace KYM
             walkblend = Mathf.Lerp(walkblend, IsWalk ? 1f : 0f, Time.deltaTime);
             crouchblend = Mathf.Lerp(crouchblend, IsCrouch ? 1f : 0f, Time.deltaTime * 10f);
             aimingblend = Mathf.Lerp(aimingblend, IsAiming ? 1f : 0f, Time.deltaTime * 10f);
+
+            aimingRig.weight = aimingblend; // 조준 Rig의 가중치 설정 (필요한 경우)
 
             animator.SetFloat("Running", walkblend);
             animator.SetFloat("Aiming", aimingblend);
@@ -83,6 +100,19 @@ namespace KYM
             Vector3 aimDirection = (aimTarget - pos).normalized;
 
             transform.forward = Vector3.Lerp(transform.forward, aimDirection, Time.deltaTime * 20f);
+        }
+
+        public void Shoot()
+        {
+            GameObject newBullet = Instantiate(bulletPrefeb);
+            bulletPrefeb.gameObject.SetActive(true); // 총알 프리팹 활성화
+
+            // newBullet.transform.position = bulletSpawnPoint.position; // 총알 발사 위치 설정
+            // newBullet.transform.rotation = bulletSpawnPoint.rotation; // 총알 발사 방향 설정
+            newBullet.transform.SetPositionAndRotation(bulletSpawnPoint.position, bulletSpawnPoint.rotation); // 총알 발사 위치와 방향 설정
+
+            //Rigidbody bulletRigidbody = newBullet.GetComponent<Rigidbody>();
+            //bulletRigidbody.AddForce(bulletSpawnPoint.forward * 100f, ForceMode.Impulse); // 총알에 힘을 가하여 발사
         }
     }
 }
