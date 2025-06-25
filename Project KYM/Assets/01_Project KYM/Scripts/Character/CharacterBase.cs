@@ -13,6 +13,14 @@ namespace KYM
         [SerializeField] private Rig aimingRig; // 조준 Rig (필요한 경우)
         [SerializeField] private Transform aimingPoint; // 조준 포인트 (필요한 경우)
 
+        // "=>" 이렇게 적은 것을 Lambda(람다) 표현식이라고 합니다.
+        public int MaxAmmo => maxAmmo;
+        public int CurAmmo => curAmmo;
+        public float MaxHP => maxHP;
+        public float CurHP => curHP;
+        public float MaxSp => maxSp;
+        public float CurSp => curSp;
+
         public Vector3 AimingPoint 
         {
             set 
@@ -25,7 +33,7 @@ namespace KYM
         public bool IsCrouch { get; set; } = false;
         public bool IsAiming { get; set; } = false;
         public Vector3 Aimtarget { get; set; } 
-        public bool IsReloading { get; set; } = false;
+        public bool IsReloading { get; private set; } = false;
 
         private Animator animator; // Animator 컴포넌트
         private CharacterController characterController; // CharacterController 컴포넌트
@@ -42,18 +50,35 @@ namespace KYM
         private float smoothHorizontal;
         private float smoothVertical;
 
+        private float fireRate = 0.3f; // 발사 속도
+        private float lastFireTime = 0f; // 마지막 발사 시간
+
+        private int maxAmmo = 30; // 최대 탄약 수
+        private int curAmmo = 30; // 현재 탄약 수
+
+        private float maxHP = 1000f; // 최대 체력
+        private float curHP = 1000f; // 현재 체력
+        private float maxSp = 100f; // 최대 스태미나
+        private float curSp = 100f; // 현재 스태미나
+
+        public event System.Action<int, int> OnAmmoChanged; // 탄약 변경 이벤트 (Callback)
+
         private void Awake()
         {
             animator = GetComponent<Animator>();
             characterController = GetComponent<CharacterController>();
+
+            var reloadState = animator.GetBehaviour<ReloadStateMachineBehaviour>();
+            reloadState.setCharacter(this); // 재장전 상태 머신 동작에 캐릭터 설정
         }
 
         private void Update()
         {
             walkblend = Mathf.Lerp(walkblend, IsWalk ? 1f : 0f, Time.deltaTime);
             crouchblend = Mathf.Lerp(crouchblend, IsCrouch ? 1f : 0f, Time.deltaTime * 10f);
-            aimingblend = Mathf.Lerp(aimingblend, IsAiming ? 1f : 0f, Time.deltaTime * 10f);
 
+            bool isAimingRigEnabled = IsAiming && !IsReloading; // 조준 중이면서 재장전 중이 아닐 때만 조준 Rig 활성화
+            aimingblend = Mathf.Lerp(aimingblend, isAimingRigEnabled ? 1f : 0f, Time.deltaTime * 10f);
             aimingRig.weight = aimingblend; // 조준 Rig의 가중치 설정 (필요한 경우)
 
             animator.SetFloat("Running", walkblend);
@@ -104,15 +129,34 @@ namespace KYM
 
         public void Shoot()
         {
-            GameObject newBullet = Instantiate(bulletPrefeb);
-            bulletPrefeb.gameObject.SetActive(true); // 총알 프리팹 활성화
+            if(Time.time - lastFireTime > fireRate && curAmmo > 0) // 발사 속도 제한 & 현재 탄약이 0보다 큰 경우
+            {
+                // Time.time : 현재 유니티의 시간을 의미 => 현재 유니티가 플레이 된지 3초 지났다면? => 3.0f
+                GameObject newBullet = Instantiate(bulletPrefeb);
+                bulletPrefeb.gameObject.SetActive(true); // 총알 프리팹 활성화
+                newBullet.transform.SetPositionAndRotation(bulletSpawnPoint.position, bulletSpawnPoint.rotation); // 총알 발사 위치와 방향 설정
 
-            // newBullet.transform.position = bulletSpawnPoint.position; // 총알 발사 위치 설정
-            // newBullet.transform.rotation = bulletSpawnPoint.rotation; // 총알 발사 방향 설정
-            newBullet.transform.SetPositionAndRotation(bulletSpawnPoint.position, bulletSpawnPoint.rotation); // 총알 발사 위치와 방향 설정
+                lastFireTime = Time.time; // 마지막 발사 시간 업데이트
+                curAmmo--; // 현재 탄약 감소
 
-            //Rigidbody bulletRigidbody = newBullet.GetComponent<Rigidbody>();
-            //bulletRigidbody.AddForce(bulletSpawnPoint.forward * 100f, ForceMode.Impulse); // 총알에 힘을 가하여 발사
+                OnAmmoChanged?.Invoke(curAmmo, maxAmmo); // 탄약 변경 이벤트 호출
+            }
+        }
+
+        public void Reload()
+        {
+            if (IsReloading) return; // 이미 재장전 중이라면 ㄴㄴ
+
+            IsReloading = true; // 재장전 상태 설정
+            animator.SetTrigger("Reload Trigger"); // 재장전 애니메이션 트리거 설정
+        }
+
+        public void SetReloadComplete()
+        {
+            curAmmo = maxAmmo; // 현재 탄약을 최대 탄약으로 설정
+            IsReloading = false; // 재장전 완료 상태로 설정
+
+            OnAmmoChanged?.Invoke(curAmmo, maxAmmo); // 탄약 변경 이벤트 호출
         }
     }
 }

@@ -1,12 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace KYM
 {
     public class PlayerController : MonoBehaviour
     {
         [field: SerializeField] public Transform CinemachineCameraTarget { get; private set; }
+
+        [SerializeField] private TextMeshProUGUI ammoText;
+        [SerializeField] private TextMeshProUGUI hpText; // 체력 텍스트 UI (추가)
+        [SerializeField] private TextMeshProUGUI spText; // 스태미너 텍스트 UI (추가)
+        [SerializeField] private Image hpBar; // 체력 바 UI (추가)
+        [SerializeField] private Image spBar; // 스태미너 바 UI (추가)
 
         private CharacterBase linkedCharacter;
         private Camera mainCamera;
@@ -28,7 +36,16 @@ namespace KYM
         {
             Cursor.visible = false; // 커서 숨김
             Cursor.lockState = CursorLockMode.Locked; // 커서 잠금 상태 설정
+
+            ammoText.text = $"{linkedCharacter.CurAmmo} / {linkedCharacter.MaxAmmo}";
+            hpText.text = $"{linkedCharacter.CurHP} / {linkedCharacter.MaxHP}"; // 체력 텍스트 초기화 (추가)
+            spText.text = $"{linkedCharacter.CurSp} / {linkedCharacter.MaxSp}"; // 스태미너 텍스트 초기화 (추가)
+            hpBar.fillAmount = linkedCharacter.CurHP / linkedCharacter.MaxHP; // 체력 바 초기화 (추가)
+            spBar.fillAmount = linkedCharacter.CurSp / linkedCharacter.MaxSp; // 스태미너 바 초기화 (추가)
+
+            linkedCharacter.OnAmmoChanged += RefreshAmmoText; // 탄약 변경 이벤트 구독
         }
+
         private void Update()
         {
             if (linkedCharacter == null) { return; }
@@ -39,6 +56,11 @@ namespace KYM
             if (Input.GetMouseButton(0)) // 마우스 좌클릭이 눌러져있으면 계속 true
             {
                 linkedCharacter.Shoot();
+            }
+
+            if (Input.GetKeyDown(KeyCode.R)) // R 키를 눌렀을 때
+            {
+                linkedCharacter.Reload(); // 재장전 처리
             }
 
             if (Input.GetKeyDown(KeyCode.LeftControl)) // 왼쪽 Ctrl 키를 눌렀을 때
@@ -83,6 +105,11 @@ namespace KYM
             if (angle > 360f) angle -= 360f;
 
             return Mathf.Clamp(angle, min, max);
+        }
+
+        void RefreshAmmoText(int curAmmo, int maxAmmo)
+        {
+            ammoText.text = $"{curAmmo} / {maxAmmo}"; // 현재 탄약과 최대 탄약을 텍스트로 표시
         }
     }
 }
