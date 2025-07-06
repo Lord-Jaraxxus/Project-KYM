@@ -6,6 +6,8 @@ namespace KYM
 {
     public class Bullet : MonoBehaviour
     {
+        public CharacterBase shooter;
+
         public float bulletSpeed = 10f;
         public float lifeTime = 5f;
 
@@ -17,6 +19,11 @@ namespace KYM
         private void Update()
         {
             transform.Translate(Vector3.forward * bulletSpeed * Time.deltaTime, Space.Self); // 총알을 앞으로 이동시킵니다.
+        }
+
+        public void Initialize(CharacterBase owner)
+        {
+            shooter = owner;
         }
     }
 }
