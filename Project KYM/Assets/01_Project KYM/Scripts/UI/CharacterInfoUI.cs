@@ -8,10 +8,6 @@ namespace KYM
     public class CharacterInfoUI : UIBase
     {
         [SerializeField] private Button exitButton;
-        private void Awake()
-        {
-            gameObject.SetActive(false); // Ω√¿€ Ω√ ≤®µ“
-        }
 
         public void Open()
         {

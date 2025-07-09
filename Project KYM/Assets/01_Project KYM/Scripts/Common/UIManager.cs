@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-namespace KYM 
+namespace KYM
 {
-    public class UIManager : MonoBehaviour
+    public class UIManager : SingletonBase<UIManager> // UIManager는 SingletonBase를 상속받아 싱글톤 패턴을 구현
     {
-        public static UIManager Instance { get; private set; } = null; // 싱글톤 인스턴스
-
         public static T Show<T>(UIList uiName) where T : UIBase
         {
-            var newUI = Instance.GetUI<T>(uiName); // UIManager에서 UI를 가져옴
+            var newUI = Singleton.GetUI<T>(uiName); // UIManager에서 UI를 가져옴
             if (newUI == null) return null; // UI가 없으면 null 반환
 
             newUI.Show(); // UI를 보여줌
@@ -19,22 +17,11 @@ namespace KYM
         }
         public static T Hide<T>(UIList uiName) where T : UIBase
         {
-            var targetUI = Instance.GetUI<T>(uiName); // UIManager에서 UI를 가져옴
+            var targetUI = Singleton.GetUI<T>(uiName); // UIManager에서 UI를 가져옴
             if (!targetUI) return null; // UI가 없으면 null 반환
 
             targetUI.Hide(); // UI를 숨김
             return targetUI;
-        }
-
-        private void Awake()
-        {
-            Instance = this; // 싱글톤 인스턴스 설정
-            DontDestroyOnLoad(this.gameObject); // 씬 전환 시 파괴되지 않도록 설정
-        }
-
-        private void OnDestroy()
-        {
-            Instance = null; // 인스턴스 초기화
         }
 
         private Transform panelRoot; // 패널 UI를 담을 루트 트랜스폼
@@ -77,16 +64,16 @@ namespace KYM
 
         public T GetUI<T>(UIList uiName) where T : UIBase
         {
-            Dictionary<UIList, UIBase> container = 
+            Dictionary<UIList, UIBase> container =
                 uiName > UIList.POPUP_START &&
                 uiName < UIList.POPUP_END ? popups : panels; // 팝업인지 패널인지 확인
 
-           
-            Transform root = 
-                uiName > UIList.POPUP_START && 
+
+            Transform root =
+                uiName > UIList.POPUP_START &&
                 uiName < UIList.POPUP_END ? popupRoot : panelRoot; // 팝업 루트 또는 패널 루트 설정
 
-            if(!container.ContainsKey(uiName)) // 딕셔너리에 UI가 없으면
+            if (!container.ContainsKey(uiName)) // 딕셔너리에 UI가 없으면
             {
                 return null; // null 반환
             }
@@ -101,16 +88,52 @@ namespace KYM
                 var component = Instantiate(uiPrefab, root).GetComponent<T>(); // UI 프리팹 인스턴스화
                 container[uiName] = component;
 
-                if (container[uiName]) 
+                if (container[uiName])
                 {
                     container[uiName].gameObject.SetActive(false); // UI를 비활성화 상태로 설정
                 }
             }
             return (T)container[uiName]; // UI 반환
         }
-        void Update() // 시간 정지 테스트용
+
+
+        private List<UIList> autoHideExceptUIs = new List<UIList>()
         {
-            Debug.Log("DeltaTime: " + Time.deltaTime);
+            UIList.LoadingUI, // 자동으로 숨기지 않을 UI 목록
+        };
+
+        public void HideAll()
+        {
+            HideALlPanel(); // 모든 패널 숨김
+            HideAllPopup(); // 모든 팝업 숨김
+        }
+
+        public void HideALlPanel()
+        {
+            foreach (var panel in panels)
+            {
+                if (autoHideExceptUIs.Contains(panel.Key))
+                    continue; // 다음 패널로 넘어감
+
+                if (panel.Value != null) 
+                {
+                    panel.Value.Hide(); // 패널 숨김
+                }
+            }    
+        }
+
+        public void HideAllPopup()
+        {
+            foreach (var popup in popups)
+            {
+                if(autoHideExceptUIs.Contains(popup.Key)) 
+                    continue; // 다음 팝업으로 넘어감
+
+                if (popup.Value != null) 
+                {
+                    popup.Value.Hide(); // 팝업 숨김
+                }
+            }
         }
     }
 }

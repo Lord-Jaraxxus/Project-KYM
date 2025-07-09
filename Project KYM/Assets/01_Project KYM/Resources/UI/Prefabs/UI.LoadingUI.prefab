@@ -98,10 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43a82663cccb7fb45ade345f3271174e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  group: {fileID: 231915383917495979}
-  loadingPanel: {fileID: 5767810477180090633}
   loadingBar: {fileID: 530260845224671553}
-  fadeSpeed: 0.5
 --- !u!1 &2773060718139605145
 GameObject:
   m_ObjectHideFlags: 0
@@ -188,7 +185,6 @@ GameObject:
   - component: {fileID: 379224541953374378}
   - component: {fileID: 8869832061656195655}
   - component: {fileID: 1948618878761234856}
-  - component: {fileID: 231915383917495979}
   m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
@@ -212,8 +208,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -12, y: 0}
-  m_SizeDelta: {x: 0.00012207031, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8869832061656195655
 CanvasRenderer:
@@ -253,18 +249,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!225 &231915383917495979
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3521630117039468542}
-  m_Enabled: 1
-  m_Alpha: 0
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
 --- !u!1 &5767810477180090633
 GameObject:
   m_ObjectHideFlags: 0
@@ -282,7 +266,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6700601669404829725
 RectTransform:
   m_ObjectHideFlags: 0

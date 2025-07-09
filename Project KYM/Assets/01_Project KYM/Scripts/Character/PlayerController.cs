@@ -29,7 +29,7 @@ namespace KYM
 
         private void Start()
         {
-            var playerHUD = UIManager.Instance.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
+            var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
 
             playerHUD.RefreshAmmoText(linkedCharacter.CurAmmo, linkedCharacter.MaxAmmo, linkedCharacter.ReserveAmmo); // 탄약 텍스트 초기화
             playerHUD.RefreshHpUI(linkedCharacter.CurHP, linkedCharacter.MaxHP); // 체력 UI 초기화
@@ -47,7 +47,7 @@ namespace KYM
 
             if (linkedCharacter) 
             {
-                var playerHUD = UIManager.Instance.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
+                var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
                 linkedCharacter.OnAmmoChanged -= playerHUD.RefreshAmmoText; // 탄약 변경 이벤트 구독 해제
                 linkedCharacter.OnHpChanged -= playerHUD.RefreshHpUI; // 체력 변경 이벤트 구독 해제
                 linkedCharacter.OnSpChanged -= playerHUD.RefreshSpUI; // 스태미너 변경 이벤트 구독 해제

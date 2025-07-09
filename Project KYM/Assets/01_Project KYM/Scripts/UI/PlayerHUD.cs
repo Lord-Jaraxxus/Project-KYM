@@ -21,15 +21,7 @@ namespace KYM
 
         public void OnclickGoToTitleButton() 
         {
-            var loadingUI = UIManager.Show<LoadingUI>(UIList.LoadingUI);
-            loadingUI.ShowLoadingUI(() =>
-            {
-                UIManager.Hide<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD ¼û±è
-                UIManager.Hide<CharacterInfoUI>(UIList.CharacterInfoUI); // CharacterInfoUI ¼û±è
-                UIManager.Hide<MenuUI>(UIList.MenuUI); // MenuUI ¼û±è
-                UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // "Title" ¾ÀÀ¸·Î ÀüÈ¯
-                UIManager.Show<TitleUI>(UIList.TitleUI);
-            });
+            Main.Singleton.ChangeScene(SceneType.Title); // Å¸ÀÌÆ² ¾ÀÀ¸·Î º¯°æ
         }
 
         public void OnclickInfoButton()

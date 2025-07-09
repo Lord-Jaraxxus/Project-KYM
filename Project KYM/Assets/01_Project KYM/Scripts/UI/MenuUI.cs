@@ -9,11 +9,6 @@ namespace KYM
 {
     public class MenuUI : UIBase
     {
-        private void Awake()
-        {
-            UIManager.Hide<MenuUI>(UIList.MenuUI); // UIManager¸¦ ÅëÇØ ¼û±è
-            // gameObject.SetActive(false); // ½ÃÀÛ ½Ã ²¨µÒ
-        }
 
         void Update()
         {
@@ -36,15 +31,7 @@ namespace KYM
 
         public void OnclickExitButton() 
         {
-            var loadingUI = UIManager.Show<LoadingUI>(UIList.LoadingUI);
-            loadingUI.ShowLoadingUI(() =>
-            {
-                UIManager.Hide<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD ¼û±è
-                UIManager.Hide<CharacterInfoUI>(UIList.CharacterInfoUI); // CharacterInfoUI ¼û±è
-                UIManager.Hide<MenuUI>(UIList.MenuUI); // MenuUI ¼û±è
-                UnityEngine.SceneManagement.SceneManager.LoadScene("Title"); // "Title" ¾ÀÀ¸·Î ÀüÈ¯
-                UIManager.Show<TitleUI>(UIList.TitleUI);
-            });
+            Main.Singleton.SystemQuit(); // °ÔÀÓ Á¾·á
         }
     }
 }
