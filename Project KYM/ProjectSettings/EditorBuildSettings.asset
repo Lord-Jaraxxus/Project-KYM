@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/01_Project KYM/Scenes/Title.unity
+    guid: 34dc61abd102cd943aedd7ff3bd9132e
+  - enabled: 1
+    path: Assets/01_Project KYM/Scenes/Ingame.unity
+    guid: b5ae2b7732e0c474f9cca547e595c5e2
+  - enabled: 1
+    path: Assets/01_Project KYM/Scenes/Main.unity
+    guid: bb0e8270c6b9e654b95a6b27bc015f4a
   m_configObjects: {}

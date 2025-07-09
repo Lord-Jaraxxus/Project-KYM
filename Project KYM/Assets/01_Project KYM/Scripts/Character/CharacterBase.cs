@@ -30,7 +30,7 @@ namespace KYM
             }
         }
 
-        public bool IsWalk { get; set; } = false;
+        public bool IsWalk { get; set; } = true;
         public bool IsCrouch { get; set; } = false;
         public bool IsAiming { get; set; } = false;
         public Vector3 Aimtarget { get; set; } 
@@ -39,7 +39,7 @@ namespace KYM
         private Animator animator; // Animator 컴포넌트
         private CharacterController characterController; // CharacterController 컴포넌트
 
-        private float walkblend;
+        private float runningblend;
         private float crouchblend;
         private float aimingblend;
 
@@ -68,6 +68,7 @@ namespace KYM
 
         public float SpConsumeRate => spConsumeRate;
         public float SpRecoverRate => spRecoverRate;
+        private bool isLockRunning = false; // 달리기 잠금 상태 (필요한 경우)
 
         public event System.Action<int, int, int> OnAmmoChanged; // 탄약 변경 이벤트 (Callback)
         public event System.Action<float, float> OnHpChanged; // 체력 변경 이벤트 (Callback) 
@@ -85,14 +86,14 @@ namespace KYM
 
         private void Update()
         {
-            walkblend = Mathf.Lerp(walkblend, IsWalk ? 1f : 0f, Time.deltaTime);
+            runningblend = Mathf.Lerp(runningblend, (!IsWalk && curSP >0f && !isLockRunning) ? 1f : 0f, Time.deltaTime);
             crouchblend = Mathf.Lerp(crouchblend, IsCrouch ? 1f : 0f, Time.deltaTime * 10f);
 
             bool isAimingRigEnabled = IsAiming && !IsReloading; // 조준 중이면서 재장전 중이 아닐 때만 조준 Rig 활성화
             aimingblend = Mathf.Lerp(aimingblend, isAimingRigEnabled ? 1f : 0f, Time.deltaTime * 10f);
             aimingRig.weight = aimingblend; // 조준 Rig의 가중치 설정 (필요한 경우)
 
-            animator.SetFloat("Running", walkblend);
+            animator.SetFloat("Running", runningblend);
             animator.SetFloat("Aiming", aimingblend);
             animator.SetFloat("Crouch", crouchblend);
         }
@@ -117,8 +118,18 @@ namespace KYM
                     transform.rotation = Quaternion.Euler(0, roatation, 0);
                 }
             }
-            
-            smoothHorizontal = Mathf.Lerp(smoothHorizontal, input.x, Time.deltaTime * 10f);
+
+            if (isInputSomething && !IsWalk && curSP > 0f && !isLockRunning) // 달리기 상태가 아니고 스태미너가 0보다 큰 경우
+            {
+                ConsumeSp(spConsumeRate * Time.deltaTime); // 스태미너 소모
+            }
+            else
+            {
+                RecoverySp(spRecoverRate * Time.deltaTime); // 초당 SP 회복
+            }
+
+
+                smoothHorizontal = Mathf.Lerp(smoothHorizontal, input.x, Time.deltaTime * 10f);
             smoothVertical = Mathf.Lerp(smoothVertical, input.y, Time.deltaTime * 10f);
 
             animator.SetFloat("Magnitude", input.magnitude);
@@ -197,17 +208,28 @@ namespace KYM
 
         public void ConsumeSp(float amount)
         {
-            if (curSP <= 0) return; // 현재 스태미너가 0 이하인 경우 소비하지 않음
+            if (curSP <= 0 || isLockRunning) return; // 현재 스태미너가 0 이하인 경우 소비하지 않음
             curSP -= amount; // 스태미너 감소
             curSP = Mathf.Clamp(curSP, 0, maxSP); // 스태미너를 0과 최대 스태미너 사이로 제한
             OnSpChanged?.Invoke(curSP, maxSP); // 스태미너 변경 이벤트 호출
+
+            if (curSP <= 0) 
+            {
+                isLockRunning = true; // 스태미너가 0 이하일 때 달리기 잠금 상태 설정
+            }
         }
 
-        public void RecoverSp(float amount)
+        public void RecoverySp(float amount)
         {
             if (curSP >= maxSP) return; // 이미 풀일 땐 회복 X
             curSP += amount; 
             curSP = Mathf.Clamp(curSP, 0, maxSP); // 스태미너를 0과 최대 스태미너 사이로 제한
+
+            if (curSP >= 20)
+            {
+                isLockRunning = false ; // 스태미너가 0 이하일 때 달리기 잠금 상태 설정
+            }
+
             OnSpChanged?.Invoke(curSP, maxSP); // 스태미너 변경 이벤트 호출
         }
     }
