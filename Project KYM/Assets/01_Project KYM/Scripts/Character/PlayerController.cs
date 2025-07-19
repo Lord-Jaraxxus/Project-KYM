@@ -29,11 +29,17 @@ namespace KYM
 
         private void Start()
         {
+            Vector3 spawnPosition = UserDataModel.Singleton.PlayerInfoDto.LastPosition;
+            Quaternion spawnRotation = Quaternion.Euler(UserDataModel.Singleton.PlayerInfoDto.LastRotation);
+            transform.SetPositionAndRotation(spawnPosition, spawnRotation); // 플레이어 위치와 회전 설정
+
+            linkedCharacter.Initialize(GameDataModel.Singleton.PlayerStatDto.playerCharacterStatSO); // 캐릭터 스텟 초기화
+
             var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
 
             playerHUD.RefreshAmmoText(linkedCharacter.CurAmmo, linkedCharacter.MaxAmmo, linkedCharacter.ReserveAmmo); // 탄약 텍스트 초기화
             playerHUD.RefreshHpUI(linkedCharacter.CurHP, linkedCharacter.MaxHP); // 체력 UI 초기화
-            playerHUD.RefreshSpUI(linkedCharacter.CurSp, linkedCharacter.MaxSp); // 스태미너 UI 초기화
+            playerHUD.RefreshSpUI(linkedCharacter.CurSP, linkedCharacter.MaxSP); // 스태미너 UI 초기화
 
             linkedCharacter.OnAmmoChanged += playerHUD.RefreshAmmoText; // 탄약 변경 이벤트 구독
             linkedCharacter.OnHpChanged += playerHUD.RefreshHpUI; // 체력 변경 이벤트 구독
@@ -100,6 +106,12 @@ namespace KYM
             if (Input.GetKeyUp(KeyCode.LeftShift))
             {
                 linkedCharacter.IsWalk = true; 
+            }
+
+            if (Input.GetKeyDown(KeyCode.F9)) // Save
+            {
+                UserDataModel.Singleton.PlayerInfoDto.SetPositionAndRotation(transform.position, transform.rotation); // 현재 위치와 회전 저장
+                UserDataModel.Singleton.PlayerInfoDto.SaveData(); // 데이터 저장
             }
         }
 

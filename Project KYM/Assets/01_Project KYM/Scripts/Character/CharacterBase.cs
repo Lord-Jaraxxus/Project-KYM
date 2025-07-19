@@ -17,10 +17,10 @@ namespace KYM
         public int MaxAmmo => maxAmmo;
         public int CurAmmo => curAmmo;
         public int ReserveAmmo => reserveAmmo;
-        public float MaxHP => maxHP;
+        public float MaxHP => characterStat.MaxHP;
         public float CurHP => curHP;
-        public float MaxSp => maxSP;
-        public float CurSp => curSP;
+        public float MaxSP => characterStat.MaxSP;
+        public float CurSP => curSP;
 
         public Vector3 AimingPoint 
         {
@@ -38,6 +38,7 @@ namespace KYM
 
         private Animator animator; // Animator 컴포넌트
         private CharacterController characterController; // CharacterController 컴포넌트
+        private CharacterStatDataSO characterStat; // 캐릭터 스탯 데이터 (ScriptableObject)
 
         private float runningblend;
         private float crouchblend;
@@ -58,9 +59,7 @@ namespace KYM
         private int curAmmo = 30; // 현재 탄약 수
         private int reserveAmmo = 40; // 소지 탄약 수
 
-        private float maxHP = 1000f; // 최대 체력
         private float curHP = 1000f; // 현재 체력
-        private float maxSP = 100f; // 최대 스태미나
         private float curSP = 100f; // 현재 스태미나
 
         [SerializeField] private float spConsumeRate = 10f; // 초당 SP 소모량
@@ -74,6 +73,10 @@ namespace KYM
         public event System.Action<float, float> OnHpChanged; // 체력 변경 이벤트 (Callback) 
         public event System.Action<float, float> OnSpChanged; // 스태미너 변경 이벤트 (Callback)
 
+        public void Initialize(CharacterStatDataSO statDataSo) 
+        {
+            this.characterStat = statDataSo; // 캐릭터 스탯 데이터 초기화
+        }
 
         private void Awake()
         {
@@ -196,22 +199,22 @@ namespace KYM
         void IHasHp.TakeDamage(float damage)
         {
             curHP -= damage;
-            curHP = Mathf.Clamp(curHP, 0f, maxHP);
-            OnHpChanged?.Invoke((int)curHP, (int)maxHP);
+            curHP = Mathf.Clamp(curHP, 0f, this.MaxHP);
+            OnHpChanged?.Invoke((int)curHP, (int)this.MaxHP);
         }
         void IHasHp.Heal(float amount)
         {
             curHP += amount;
-            curHP = Mathf.Clamp(curHP, 0f, maxHP);
-            OnHpChanged?.Invoke((int)curHP, (int)maxHP);
+            curHP = Mathf.Clamp(curHP, 0f, this.MaxHP);
+            OnHpChanged?.Invoke((int)curHP, (int)this.MaxHP);
         }
 
         public void ConsumeSp(float amount)
         {
             if (curSP <= 0 || isLockRunning) return; // 현재 스태미너가 0 이하인 경우 소비하지 않음
             curSP -= amount; // 스태미너 감소
-            curSP = Mathf.Clamp(curSP, 0, maxSP); // 스태미너를 0과 최대 스태미너 사이로 제한
-            OnSpChanged?.Invoke(curSP, maxSP); // 스태미너 변경 이벤트 호출
+            curSP = Mathf.Clamp(curSP, 0, this.MaxSP); // 스태미너를 0과 최대 스태미너 사이로 제한
+            OnSpChanged?.Invoke(curSP, this.MaxSP); // 스태미너 변경 이벤트 호출
 
             if (curSP <= 0) 
             {
@@ -221,16 +224,16 @@ namespace KYM
 
         public void RecoverySp(float amount)
         {
-            if (curSP >= maxSP) return; // 이미 풀일 땐 회복 X
+            if (curSP >= this.MaxSP) return; // 이미 풀일 땐 회복 X
             curSP += amount; 
-            curSP = Mathf.Clamp(curSP, 0, maxSP); // 스태미너를 0과 최대 스태미너 사이로 제한
+            curSP = Mathf.Clamp(curSP, 0, this.MaxSP); // 스태미너를 0과 최대 스태미너 사이로 제한
 
             if (curSP >= 20)
             {
                 isLockRunning = false ; // 스태미너가 0 이하일 때 달리기 잠금 상태 설정
             }
 
-            OnSpChanged?.Invoke(curSP, maxSP); // 스태미너 변경 이벤트 호출
+            OnSpChanged?.Invoke(curSP, this.MaxSP); // 스태미너 변경 이벤트 호출
         }
     }
 }
