@@ -7,16 +7,14 @@ namespace KYM
 {
     public class CharacterBase : MonoBehaviour, IHasHp
     {
-        [SerializeField] private GameObject bulletPrefeb; // 총알 프리팹
-        [SerializeField] private Transform bulletSpawnPoint; // 총알 발사 위치
 
         [SerializeField] private Rig aimingRig; // 조준 Rig (필요한 경우)
+        [SerializeField] private Transform leftHandIKTarget; // 왼손 IK 타겟
         [SerializeField] private Transform aimingPoint; // 조준 포인트 (필요한 경우)
+        [SerializeField] private WeaponBase primaryWeapon;  // 주 무기 프리팹
+        [SerializeField] private WeaponBase secondaryWeapon; // 보조 무기 프리팹
 
-        // "=>" 이렇게 적은 것을 Lambda(람다) 표현식이라고 합니다.
-        public int MaxAmmo => maxAmmo;
-        public int CurAmmo => curAmmo;
-        public int ReserveAmmo => reserveAmmo;
+        public WeaponBase CurrentWeapon => currentWeapon; // 현재 장착된 무기 반환
         public float MaxHP => characterStat.MaxHP;
         public float CurHP => curHP;
         public float MaxSP => characterStat.MaxSP;
@@ -39,6 +37,7 @@ namespace KYM
         private Animator animator; // Animator 컴포넌트
         private CharacterController characterController; // CharacterController 컴포넌트
         private CharacterStatDataSO characterStat; // 캐릭터 스탯 데이터 (ScriptableObject)
+        private WeaponBase currentWeapon; // 현재 장착된 무기
 
         private float runningblend;
         private float crouchblend;
@@ -52,21 +51,12 @@ namespace KYM
         private float smoothHorizontal;
         private float smoothVertical;
 
-        private float fireRate = 0.3f; // 발사 속도
-        private float lastFireTime = 0f; // 마지막 발사 시간
-
-        private int maxAmmo = 30; // 최대 탄약 수
-        private int curAmmo = 30; // 현재 탄약 수
-        private int reserveAmmo = 40; // 소지 탄약 수
-
         private float curHP = 1000f; // 현재 체력
         private float curSP = 100f; // 현재 스태미나
 
-        [SerializeField] private float spConsumeRate = 10f; // 초당 SP 소모량
-        [SerializeField] private float spRecoverRate = 5f; // 초당 SP 회복량
+        public float SpConsumeRate => characterStat.SpConsumeRate;
+        public float SpRecoverRate => characterStat.SpRecoveryRate;
 
-        public float SpConsumeRate => spConsumeRate;
-        public float SpRecoverRate => spRecoverRate;
         private bool isLockRunning = false; // 달리기 잠금 상태 (필요한 경우)
 
         public event System.Action<int, int, int> OnAmmoChanged; // 탄약 변경 이벤트 (Callback)
@@ -78,8 +68,24 @@ namespace KYM
             this.characterStat = statDataSo; // 캐릭터 스탯 데이터 초기화
             this.curHP = UserDataModel.Singleton.PlayerInfoDto.LastCurHP;// 플레이어의 마지막 체력 불러옴
             this.curSP = UserDataModel.Singleton.PlayerInfoDto.LastCurSP; // 플레이어의 마지막 스태미너 불러옴
-            this.curAmmo = UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
-            this.reserveAmmo = UserDataModel.Singleton.PlayerInfoDto.LastResAmmo; // 플레이어의 마지막 소지 탄약 불러옴
+            int curAmmo = UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
+            int reserveAmmo = UserDataModel.Singleton.PlayerInfoDto.LastResAmmo; // 플레이어의 마지막 소지 탄약 불러옴
+
+            Transform rightHandTransform = animator.GetBoneTransform(HumanBodyBones.RightHand); // 오른손 Transform 가져오기 
+            currentWeapon = Instantiate(primaryWeapon, rightHandTransform); // 주 무기 인스턴스화
+            currentWeapon.transform.SetLocalPositionAndRotation(
+                new Vector3(-0.065f, 0, -0.0135f), // 무기 위치 설정
+                Quaternion.Euler(0, -78, 0)); // 무기 회전 설정
+                
+           currentWeapon.Init(this, curAmmo, reserveAmmo); // 현재 캐릭터로 무기 초기화 
+           
+            leftHandIKTarget.SetParent(currentWeapon.transform); // 왼손 IK 타겟을 현재 무기의 자식으로 설정
+            leftHandIKTarget.SetLocalPositionAndRotation(
+                currentWeapon.LeftHandIKOffsetPosition, 
+                Quaternion.Euler(currentWeapon.LeftHandIKOffsetRotation)); // 왼손 IK 타겟 위치와 회전 설정
+
+            var rigBuilder = GetComponentInChildren<RigBuilder>(); // RigBuilder 컴포넌트 가져오기
+            rigBuilder.Build(); // RigBuilder 빌드
         }
 
         private void Awake()
@@ -128,11 +134,11 @@ namespace KYM
 
             if (isInputSomething && !IsWalk && curSP > 0f && !isLockRunning) // 달리기 상태가 아니고 스태미너가 0보다 큰 경우
             {
-                ConsumeSp(spConsumeRate * Time.deltaTime); // 스태미너 소모
+                ConsumeSp(SpConsumeRate * Time.deltaTime); // 스태미너 소모
             }
             else
             {
-                RecoverySp(spRecoverRate * Time.deltaTime); // 초당 SP 회복
+                RecoverySp(SpConsumeRate * Time.deltaTime); // 초당 SP 회복
             }
 
 
@@ -158,19 +164,7 @@ namespace KYM
 
         public void Shoot()
         {
-            if(Time.time - lastFireTime > fireRate && curAmmo > 0) // 발사 속도 제한 & 현재 탄약이 0보다 큰 경우
-            {
-                // Time.time : 현재 유니티의 시간을 의미 => 현재 유니티가 플레이 된지 3초 지났다면? => 3.0f
-                GameObject newBullet = Instantiate(bulletPrefeb);
-                bulletPrefeb.gameObject.SetActive(true); // 총알 프리팹 활성화
-                newBullet.transform.SetPositionAndRotation(bulletSpawnPoint.position, bulletSpawnPoint.rotation); // 총알 발사 위치와 방향 설정
-                newBullet.GetComponent<Bullet>().Initialize(this); // 총알의 소유자를 현재 캐릭터로 설정
-
-                lastFireTime = Time.time; // 마지막 발사 시간 업데이트
-                curAmmo--; // 현재 탄약 감소
-
-                OnAmmoChanged?.Invoke(curAmmo, maxAmmo,reserveAmmo); // 탄약 변경 이벤트 호출
-            }
+            currentWeapon.Fire(); // 현재 무기의 발사 메서드 호출
         }
 
         public void Reload()
@@ -181,23 +175,16 @@ namespace KYM
             animator.SetTrigger("Reload Trigger"); // 재장전 애니메이션 트리거 설정
         }
 
-        public void SetReloadComplete()
+        public void AddReserveAmmo(int amount)
         {
-            int neededAmmo = maxAmmo - curAmmo; // 현재 탄약에서 필요한 탄약 계산
-            int loadedAmmo = Mathf.Min(neededAmmo, reserveAmmo); // 필요한 탄약과 남은 탄약 중 최소값을 로드할 탄약으로 설정
-
-            curAmmo += loadedAmmo; // 현재 탄약에 로드된 탄약 추가
-            reserveAmmo -= loadedAmmo; // 소지 탄약에서 로드된 탄약 차감
-
-            IsReloading = false; // 재장전 완료 상태로 설정
-
-            OnAmmoChanged?.Invoke(curAmmo, maxAmmo, reserveAmmo); // 탄약 변경 이벤트 호출
+            currentWeapon.AddReserveAmmo(amount); // 현재 무기에 소지 탄약 추가 메서드 호출
         }
 
-        public void AddReserveAmmo(int amount) // 소지 탄약 추가 메서드
+        public void SetReloadComplete()
         {
-            reserveAmmo += amount; // 소지 탄약을 amount만큼 추가
-            OnAmmoChanged?.Invoke(curAmmo, maxAmmo, reserveAmmo); // 탄약 변경 이벤트 호출    
+            IsReloading = false; // 재장전 완료 상태로 설정
+            currentWeapon.Reload(); // 현재 무기 재장전 메서드 호출
+            OnAmmoChanged?.Invoke(currentWeapon.CurAmmo, currentWeapon.MaxAmmo, currentWeapon.ReserveAmmo); // 탄약 변경 이벤트 호출
         }
 
         void IHasHp.TakeDamage(float damage)

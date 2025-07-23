@@ -38,7 +38,7 @@ namespace KYM
 
             var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
 
-            playerHUD.RefreshAmmoText(linkedCharacter.CurAmmo, linkedCharacter.MaxAmmo, linkedCharacter.ReserveAmmo); // 탄약 텍스트 초기화
+            playerHUD.RefreshAmmoText(linkedCharacter.CurrentWeapon.CurAmmo, linkedCharacter.CurrentWeapon.MaxAmmo, linkedCharacter.CurrentWeapon.ReserveAmmo); // 탄약 텍스트 초기화
             playerHUD.RefreshHpUI(linkedCharacter.CurHP, linkedCharacter.MaxHP); // 체력 UI 초기화
             playerHUD.RefreshSpUI(linkedCharacter.CurSP, linkedCharacter.MaxSP); // 스태미너 UI 초기화
 
@@ -113,7 +113,7 @@ namespace KYM
             {
                 UserDataModel.Singleton.PlayerInfoDto.SetPositionAndRotation(transform.position, transform.rotation); // 현재 위치와 회전 저장
                 UserDataModel.Singleton.PlayerInfoDto.SetLastCurHPSP(linkedCharacter.CurHP, linkedCharacter.CurSP); // 현재 체력과 스태미너 저장
-                UserDataModel.Singleton.PlayerInfoDto.SetLastCurResAmmo(linkedCharacter.CurAmmo, linkedCharacter.ReserveAmmo); // 현재 탄약과 예비 탄약 저장
+                UserDataModel.Singleton.PlayerInfoDto.SetLastCurResAmmo(linkedCharacter.CurrentWeapon.CurAmmo, linkedCharacter.CurrentWeapon.ReserveAmmo); // 현재 탄약과 예비 탄약 저장
                 UserDataModel.Singleton.PlayerInfoDto.SaveData(); // 데이터 저장
             }
         }

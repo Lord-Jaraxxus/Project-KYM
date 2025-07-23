@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace KYM
@@ -24,6 +25,31 @@ namespace KYM
         public void Initialize(CharacterBase owner)
         {
             shooter = owner;
+        }
+
+
+        private void OnTriggerEnter(Collider other)
+        {
+
+            Vector3 hitPoint = transform.position; // 충돌 지점
+            Quaternion hitNormal = Quaternion.LookRotation(-transform.forward, transform.up); // 충돌 노멀 방향
+            string impactKey = string.Empty; // 임팩트 키
+
+            // Physics Material의 이름을 이용해서, 어디에 부딪혔는지 구분
+            if (other.material.name.Contains("Dirt"))
+            {
+                impactKey = "DirtImpact";
+            }
+            if (other.material.name.Contains("Wood"))
+            {
+                impactKey = "WoodImpact";
+            }
+            if (other.material.name.Contains("Metal"))
+            {
+                impactKey = "MetalImpact";
+            }
+
+            EffectManager.Instance.SpawnEffect(impactKey, hitPoint, hitNormal);
         }
     }
 }

@@ -8,6 +8,7 @@ namespace KYM
     {
         public static CameraSystem Instance { get; private set; }
         [field: SerializeField] public Vector3 AimingPoint { get; private set; }
+        [field: SerializeField] public LayerMask AimingLayerMask { get; private set; }
 
         private Camera mainCamera;
         private void Awake()
@@ -19,7 +20,7 @@ namespace KYM
         private void Update()
         {
             Ray screenCenterRay = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 1f));
-            if (Physics.Raycast(screenCenterRay, out RaycastHit hitInfo, 1000f))
+            if (Physics.Raycast(screenCenterRay, out RaycastHit hitInfo, 1000f, AimingLayerMask))
             {
                 AimingPoint = hitInfo.point; // 레이캐스트가 충돌한 지점의 위치를 저장합니다.
             }
