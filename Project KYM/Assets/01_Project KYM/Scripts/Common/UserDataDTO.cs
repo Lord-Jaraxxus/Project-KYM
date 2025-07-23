@@ -12,11 +12,24 @@ namespace KYM
     {
         [field: SerializeField] public Vector3 LastPosition { get; private set; }
         [field: SerializeField] public Vector3 LastRotation { get; private set; }
-
+        [field: SerializeField] public float LastCurHP { get; private set; }
+        [field: SerializeField] public float LastCurSP { get; private set; }
+        [field: SerializeField] public int LastCurAmmo { get; private set; }
+        [field: SerializeField] public int LastResAmmo { get; private set; }
         public void SetPositionAndRotation(Vector3 pos, Quaternion rot)
         {
             this.LastPosition = pos;
             this.LastRotation = rot.eulerAngles;
+        }
+        public void SetLastCurHPSP(float hp, float sp) 
+        {
+            this.LastCurHP = hp;
+            this.LastCurSP = sp;
+        }
+        public void SetLastCurResAmmo(int curAmmo, int resAmmo) 
+        {
+            this.LastCurAmmo = curAmmo;
+            this.LastResAmmo = resAmmo;
         }
 
         public void SaveData() => UserDataModel.Singleton.SaveData<PlayerInfoDto>(this);

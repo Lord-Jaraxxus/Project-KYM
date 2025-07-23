@@ -76,6 +76,10 @@ namespace KYM
         public void Initialize(CharacterStatDataSO statDataSo) 
         {
             this.characterStat = statDataSo; // 캐릭터 스탯 데이터 초기화
+            this.curHP = UserDataModel.Singleton.PlayerInfoDto.LastCurHP;// 플레이어의 마지막 체력 불러옴
+            this.curSP = UserDataModel.Singleton.PlayerInfoDto.LastCurSP; // 플레이어의 마지막 스태미너 불러옴
+            this.curAmmo = UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
+            this.reserveAmmo = UserDataModel.Singleton.PlayerInfoDto.LastResAmmo; // 플레이어의 마지막 소지 탄약 불러옴
         }
 
         private void Awake()

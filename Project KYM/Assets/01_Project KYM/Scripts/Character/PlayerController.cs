@@ -33,6 +33,7 @@ namespace KYM
             Quaternion spawnRotation = Quaternion.Euler(UserDataModel.Singleton.PlayerInfoDto.LastRotation);
             transform.SetPositionAndRotation(spawnPosition, spawnRotation); // 플레이어 위치와 회전 설정
 
+
             linkedCharacter.Initialize(GameDataModel.Singleton.PlayerStatDto.playerCharacterStatSO); // 캐릭터 스텟 초기화
 
             var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
@@ -111,6 +112,8 @@ namespace KYM
             if (Input.GetKeyDown(KeyCode.F9)) // Save
             {
                 UserDataModel.Singleton.PlayerInfoDto.SetPositionAndRotation(transform.position, transform.rotation); // 현재 위치와 회전 저장
+                UserDataModel.Singleton.PlayerInfoDto.SetLastCurHPSP(linkedCharacter.CurHP, linkedCharacter.CurSP); // 현재 체력과 스태미너 저장
+                UserDataModel.Singleton.PlayerInfoDto.SetLastCurResAmmo(linkedCharacter.CurAmmo, linkedCharacter.ReserveAmmo); // 현재 탄약과 예비 탄약 저장
                 UserDataModel.Singleton.PlayerInfoDto.SaveData(); // 데이터 저장
             }
         }
