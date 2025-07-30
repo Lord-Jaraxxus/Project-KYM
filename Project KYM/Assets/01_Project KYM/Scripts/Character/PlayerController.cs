@@ -36,6 +36,12 @@ namespace KYM
             linkedCharacter.Initialize(GameDataModel.Singleton.PlayerStatDto.playerCharacterStatSO); // 캐릭터 스텟 초기화
             linkedCharacter.InitWeapon(GameDataModel.Singleton.WeaponDataDto.weaponDataSO); // 무기 초기화 (나중에 다른 곳으로 갈 수도?)
 
+            var crosshairUI = UIManager.Singleton.GetUI<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 가져오기
+            UIManager.Show<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 표시, 부트스트랩에서 안 키더라도 무기가 초기화되면 같이 생기도록
+            if (crosshairUI == null) // 크로스헤어 UI가 설정되지 않은 경우
+                crosshairUI = FindObjectOfType<CrosshairUI>(); // 현재 씬에서 CrosshairUI 찾기..? 이거맞나?
+            crosshairUI.Init(linkedCharacter.CurrentWeapon); // 크로스헤어 UI 초기화 (발사 이벤트 연결함)
+
             var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
             playerHUD.RefreshAmmoText(linkedCharacter.CurrentWeapon.CurAmmo, linkedCharacter.CurrentWeapon.MaxAmmo, linkedCharacter.CurrentWeapon.ReserveAmmo); // 탄약 텍스트 초기화
             playerHUD.RefreshHpUI(linkedCharacter.CurHP, linkedCharacter.MaxHP); // 체력 UI 초기화
@@ -44,13 +50,19 @@ namespace KYM
             linkedCharacter.OnAmmoChanged += playerHUD.RefreshAmmoText; // 탄약 변경 이벤트 구독
             linkedCharacter.OnHpChanged += playerHUD.RefreshHpUI; // 체력 변경 이벤트 구독
             linkedCharacter.OnSpChanged += playerHUD.RefreshSpUI; // 스태미너 변경 이벤트 구독
+
+            InputManager.Singleton.OnInputLmc += OnReceiveInputLmc;
+            InputManager.Singleton.OnInputRmcUp += OnReceiveInputRmcUp;
+            InputManager.Singleton.OnInputRmcDown += OnReceiveInputRmcDown;
+            InputManager.Singleton.OnInputReload += OnReceiveInputReload;
+            InputManager.Singleton.OnInputCrouch += OnreceiveInputCrouch;
+            InputManager.Singleton.OnInputSprintUp += OnReceiveInputSprintUp;
+            InputManager.Singleton.OnInputSprintDown += OnReceiveInputSprintDown;
+            InputManager.Singleton.OnInputSave += OnReceieveInputSave;
         }
 
         private void OnDestroy()
         {
-            Cursor.visible = true;  // 커서 보이기
-            Cursor.lockState = CursorLockMode.None; // 커서 잠금 해제
-
             if (linkedCharacter) 
             {
                 var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
@@ -58,63 +70,46 @@ namespace KYM
                 linkedCharacter.OnHpChanged -= playerHUD.RefreshHpUI; // 체력 변경 이벤트 구독 해제
                 linkedCharacter.OnSpChanged -= playerHUD.RefreshSpUI; // 스태미너 변경 이벤트 구독 해제
             }
+
+            InputManager.Singleton.OnInputLmc -= OnReceiveInputLmc;
+            InputManager.Singleton.OnInputRmcUp -= OnReceiveInputRmcUp;
+            InputManager.Singleton.OnInputRmcDown -= OnReceiveInputRmcDown;
+            InputManager.Singleton.OnInputReload -= OnReceiveInputReload;
+            InputManager.Singleton.OnInputCrouch -= OnreceiveInputCrouch;
+            InputManager.Singleton.OnInputSprintUp -= OnReceiveInputSprintUp;
+            InputManager.Singleton.OnInputSprintDown -= OnReceiveInputSprintDown;
+            InputManager.Singleton.OnInputSave -= OnReceieveInputSave;
         }
+
+
+        void OnReceiveInputLmc() => linkedCharacter.Shoot(); // 좌클릭 입력 처리
+        void OnReceiveInputRmcUp() => linkedCharacter.IsAiming = false; // 우클릭 입력 해제 (조준 모드 비활성화)
+        void OnReceiveInputRmcDown() => linkedCharacter.IsAiming = true; // 우클릭 입력 처리 (조준 모드 활성화)
+        void OnReceiveInputReload() => linkedCharacter.Reload(); // 리로드 입력 처리
+        void OnreceiveInputCrouch() => linkedCharacter.IsCrouch = !linkedCharacter.IsCrouch; // 앉기 입력 처리 (크롤링 상태 토글)
+        void OnReceiveInputSprintDown() => linkedCharacter.IsWalk = false; // 달리기 입력 (왼쪽 Shift 키 누름)
+        void OnReceiveInputSprintUp() => linkedCharacter.IsWalk = true; // 달리기 입력 해제 (왼쪽 Shift 키 뗌)
+        void OnReceieveInputSave() => Save(); // 저장 입력 처리
+        
+        public void Save() 
+        {
+            UserDataModel.Singleton.PlayerInfoDto.SetPositionAndRotation(transform.position, transform.rotation); // 현재 위치와 회전 저장
+            UserDataModel.Singleton.PlayerInfoDto.SetLastCurHPSP(linkedCharacter.CurHP, linkedCharacter.CurSP); // 현재 체력과 스태미너 저장
+            UserDataModel.Singleton.PlayerInfoDto.SetLastCurResAmmo(linkedCharacter.CurrentWeapon.CurAmmo, linkedCharacter.CurrentWeapon.ReserveAmmo); // 현재 탄약과 예비 탄약 저장
+            UserDataModel.Singleton.PlayerInfoDto.SaveData(); // 데이터 저장
+        }
+       
 
         private void Update()
         {
-            if (Input.GetKey(KeyCode.LeftAlt))
-            {
-                Cursor.visible = true; // Alt 키를 누르고 있으면 커서 보이기
-                Cursor.lockState = CursorLockMode.None; // 커서 잠금 해제
-            }
-            else
-            {
-                Cursor.visible = false; // 커서 숨김
-                Cursor.lockState = CursorLockMode.Locked; // 커서 잠금 상태 설정
-            }
-
             if (linkedCharacter == null) { return; }
 
-            Vector2 inputMove = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-            bool isAim = Input.GetMouseButton(1); // 마우스 오른쪽 버튼 클릭 시 조준 모드 활성화
+            Vector2 inputMove = InputManager.Singleton.InputMove; // 이동 입력 벡터 가져오기
 
-            if (Input.GetMouseButton(0)) // 마우스 좌클릭이 눌러져있으면 계속 true
-            {
-                linkedCharacter.Shoot();
-            }
-
-            if (Input.GetKeyDown(KeyCode.R)) // R 키를 눌렀을 때
-            {
-                linkedCharacter.Reload(); // 재장전 처리
-            }
-
-            if (Input.GetKeyDown(KeyCode.LeftControl)) // 왼쪽 Ctrl 키를 눌렀을 때
-            {
-                linkedCharacter.IsCrouch = !linkedCharacter.IsCrouch; // 크롤링 상태 토글
-            }
-
-            linkedCharacter.IsAiming = isAim; // 조준 모드 설정
             linkedCharacter.SetMovementForward(mainCamera.transform.forward); // 카메라의 전방 방향을 설정
             linkedCharacter.Move(inputMove); // 캐릭터 이동 처리
             linkedCharacter.Rotate(CameraSystem.Instance.AimingPoint); // 카메라 시스템에서 조준 지점을 가져와 회전 처리
             linkedCharacter.AimingPoint = CameraSystem.Instance.AimingPoint; // 캐릭터의 조준 지점을 카메라 시스템에서 가져옴
-
-            if(Input.GetKeyDown(KeyCode.LeftShift)) // 왼쪽 Shift 키를 누르고 있으면 달리기
-            {
-                linkedCharacter.IsWalk = false; // 달리기 상태로 설정
-            }
-            if (Input.GetKeyUp(KeyCode.LeftShift))
-            {
-                linkedCharacter.IsWalk = true; 
-            }
-
-            if (Input.GetKeyDown(KeyCode.F9)) // Save
-            {
-                UserDataModel.Singleton.PlayerInfoDto.SetPositionAndRotation(transform.position, transform.rotation); // 현재 위치와 회전 저장
-                UserDataModel.Singleton.PlayerInfoDto.SetLastCurHPSP(linkedCharacter.CurHP, linkedCharacter.CurSP); // 현재 체력과 스태미너 저장
-                UserDataModel.Singleton.PlayerInfoDto.SetLastCurResAmmo(linkedCharacter.CurrentWeapon.CurAmmo, linkedCharacter.CurrentWeapon.ReserveAmmo); // 현재 탄약과 예비 탄약 저장
-                UserDataModel.Singleton.PlayerInfoDto.SaveData(); // 데이터 저장
-            }
         }
 
         private void LateUpdate()
@@ -124,7 +119,7 @@ namespace KYM
 
         void CameraRotation()
         {
-            Vector2 inputLook = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
+            Vector2 inputLook = InputManager.Singleton.InputLook; // 마우스 이동 입력 벡터 가져오기
             if (inputLook.sqrMagnitude >= cameraThreshold) // 카메라 회전 임계값 체크
             {
                 float yaw = inputLook.x;

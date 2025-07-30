@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: WeaponData
   m_EditorClassIdentifier: 
   <MaxAmmo>k__BackingField: 30
-  <LeftHandIKOffsetPosition>k__BackingField: {x: 0.8559173, y: 1.168415, z: 0.09047747}
-  <LeftHandIKOffsetRotation>k__BackingField: {x: 1.585, y: 19.87, z: 215.057}
+  <LeftHandIKOffsetPosition>k__BackingField: {x: -0.052, y: 0.081, z: 0.267}
+  <LeftHandIKOffsetRotation>k__BackingField: {x: -78.122, y: 79.634, z: 422.726}
   <InitPosition>k__BackingField: {x: -0.065, y: 0, z: -0.0135}
   <InitRotation>k__BackingField: {x: 0, y: -78, z: 0}
   <FireRate>k__BackingField: 0.3

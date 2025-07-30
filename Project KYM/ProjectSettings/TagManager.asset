@@ -8,6 +8,7 @@ TagManager:
   - Drop Item
   - Bullet
   - Sensor
+  - FX
   layers:
   - Default
   - TransparentFX
@@ -18,7 +19,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - Projectile
   - DropItem
   - Sensor
   - 

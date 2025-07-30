@@ -6,77 +6,57 @@ namespace KYM
 {
     public class CrosshairUI : UIBase
     {
-        WeaponBase linkedWeapon; // 무기와 연결된 변수
-
         [SerializeField] RectTransform crossTop;
         [SerializeField] RectTransform crossBottom;
         [SerializeField] RectTransform crossLeft;
         [SerializeField] RectTransform crossRight;
 
-        private Vector2 topDefaultPos;
-        private Vector2 bottomDefaultPos;
-        private Vector2 leftDefaultPos;
-        private Vector2 rightDefaultPos;
+        public float minSpread = 40; // 최소 스프레드 거리
+        public float maxSpread = 140; // 최대 스프레드 거리
 
-        [SerializeField] private float spreadDistance = 5f; // 스프레드 값 (얼마나 퍼지는지)
-        [SerializeField] private float recoverySpeed = 20f; // 퍼졌다가 돌아오는 속도
-
-        bool isSpread = false; // 스프레드 상태 여부
-
-        private void Start()
-        {
-            // 네모들 원래 위치 저장
-            topDefaultPos = crossTop.anchoredPosition;
-            bottomDefaultPos = crossBottom.anchoredPosition;
-            leftDefaultPos = crossLeft.anchoredPosition;
-            rightDefaultPos = crossRight.anchoredPosition;
-        }
-
-        void Update()
-        {
-            // 여기서 벌어진 걸 다시 천천히 되돌리는..
-            if (!isSpread) return;
-
-            crossTop.anchoredPosition = Vector2.MoveTowards(crossTop.anchoredPosition, topDefaultPos, recoverySpeed * Time.deltaTime);
-            crossBottom.anchoredPosition = Vector2.MoveTowards(crossBottom.anchoredPosition, bottomDefaultPos, recoverySpeed * Time.deltaTime);
-            crossLeft.anchoredPosition = Vector2.MoveTowards(crossLeft.anchoredPosition, leftDefaultPos, recoverySpeed * Time.deltaTime);
-            crossRight.anchoredPosition = Vector2.MoveTowards(crossRight.anchoredPosition, rightDefaultPos, recoverySpeed * Time.deltaTime);
-
-            if (IsCrosshairAtDefault()) 
-            {
-                isSpread = false; // 네모들이 원래 위치로 돌아오면 스프레드 상태 해제
-            }
-        }
+        public float targetSpread;
+        public float currentSpread;
+        public float recoverySpread;
 
         public void Init(WeaponBase weaponBase) // 얘를 어디서??? 무기 낄때니까 저기 웨폰베이스에서 불러야 하나??
         {
             if (weaponBase == null) return; // 무기가 없으면 초기화 중지
             weaponBase.OnFired += OnFired; // 무기 발사 이벤트 구독
         }
+        private void OnEnable()
+        {
+            currentSpread = targetSpread = minSpread; // 초기 스프레드 설정
+        }
+        void Update()
+        {
+            if (currentSpread > minSpread)
+            {
+                currentSpread -= recoverySpread * Time.deltaTime; // 스프레드 회복
+                currentSpread = Mathf.Max(currentSpread, minSpread); // 최소 스프레드 이하로 내려가지 않도록
+                UpdateCrosshair();
+            }
+        }
 
         void OnFired(int curAmmo)
         {
             // CrosshairUI의 이미지 업데이트
-            Spread(); // 발사 시 스프레드 적용
-            isSpread = true; // 스프레드 상태로 변경
-
-            Debug.Log($"Current Ammo: {curAmmo}");  // 나중에 쓸 일이? 있을수도?
+            Spread(50f); // 발사 시 스프레드 적용
         }
 
-        void Spread() 
+        void Spread(float accuracy)
         {
-            crossTop.anchoredPosition = topDefaultPos + Vector2.up * spreadDistance;
-            crossBottom.anchoredPosition = bottomDefaultPos + Vector2.down * spreadDistance;
-            crossLeft.anchoredPosition = leftDefaultPos + Vector2.left * spreadDistance;
-            crossRight.anchoredPosition = rightDefaultPos + Vector2.right * spreadDistance;
+            float spreadAmount = (100f - accuracy) / 100f; // 정확도에 따른 스프레드 계산
+            targetSpread = Mathf.Lerp(minSpread, maxSpread, spreadAmount); // 최소와 최대 스프레드 사이에서 보간
+            currentSpread = Mathf.Max(currentSpread, targetSpread); // 현재 스프레드가 목표 스프레드보다 작으면 업데이트
+            UpdateCrosshair(); // 크로스헤어 업데이트
         }
 
-        private bool IsCrosshairAtDefault()
+        private void UpdateCrosshair()
         {
-            return crossTop.anchoredPosition == topDefaultPos &&
-                   crossBottom.anchoredPosition == bottomDefaultPos &&
-                   crossLeft.anchoredPosition == leftDefaultPos &&
-                   crossRight.anchoredPosition == rightDefaultPos;
+            crossLeft.anchoredPosition = new Vector2(-currentSpread, 0); // 왼쪽 크로스헤어 위치 업데이트
+            crossRight.anchoredPosition = new Vector2(currentSpread, 0); // 오른쪽 크로스헤어 위치 업데이트
+            crossTop.anchoredPosition = new Vector2(0, currentSpread); // 위쪽 크로스헤어 위치 업데이트
+            crossBottom.anchoredPosition = new Vector2(0, -currentSpread); // 아래쪽 크로스헤어 위치 업데이트
         }
     }
 }

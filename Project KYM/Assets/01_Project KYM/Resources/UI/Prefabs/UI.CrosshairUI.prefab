@@ -140,8 +140,11 @@ MonoBehaviour:
   crossBottom: {fileID: 2573747746160989149}
   crossLeft: {fileID: 2703513308699132701}
   crossRight: {fileID: 4724709757975929145}
-  spreadDistance: 50
-  recoverySpeed: 50
+  minSpread: 40
+  maxSpread: 200
+  targetSpread: 0
+  currentSpread: 0
+  recoverySpread: 50
 --- !u!1 &1573751325308962529
 GameObject:
   m_ObjectHideFlags: 0

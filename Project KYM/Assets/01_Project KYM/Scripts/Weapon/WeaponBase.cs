@@ -1,11 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace KYM
 {
     public class WeaponBase : MonoBehaviour
     {
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red; // Gizmos 색상 설정
+            Gizmos.DrawLine(bulletSpawnPoint.position, bulletSpawnPoint.position + bulletSpawnPoint.forward * 100f); // 총알 발사 위치에서 앞으로 100 단위 길이의 선 그리기
+            
+            Gizmos.color = Color.yellow; // Gizmos 색상 변경
+            Gizmos.DrawLine(Camera.main.transform.position, Camera.main.transform.position + Camera.main.transform.forward * 100f); // 카메라 위치에서 앞으로 100 단위 길이의 선 그리기
+        }
+
         public int MaxAmmo => maxAmmo;
         public int CurAmmo => curAmmo;
         public int ReserveAmmo => reserveAmmo;
@@ -34,12 +44,6 @@ namespace KYM
 
             this.maxAmmo = GameDataModel.Singleton.WeaponDataDto.weaponDataSO.MaxAmmo; // 최대 탄약 수 설정
             this.fireRate = GameDataModel.Singleton.WeaponDataDto.weaponDataSO.FireRate; // 발사 속도 설정
-
-            crosshairUI = UIManager.Singleton.GetUI<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 가져오기
-            UIManager.Show<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 표시, 부트스트랩에서 안 키더라도 무기가 초기화되면 같이 생기도록
-            if (crosshairUI == null) // 크로스헤어 UI가 설정되지 않은 경우
-                crosshairUI = FindObjectOfType<CrosshairUI>(); // 현재 씬에서 CrosshairUI 찾기..? 이거맞나?
-            crosshairUI.Init(this); // 크로스헤어 UI 초기화 (발사 이벤트 연결함)
         }
 
         public bool Fire()
