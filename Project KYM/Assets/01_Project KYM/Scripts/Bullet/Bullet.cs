@@ -48,6 +48,14 @@ namespace KYM
             {
                 impactKey = "MetalImpact";
             }
+            if (other.material.name.Contains("Leaf"))
+            {
+                impactKey = "LeafImpact";
+            }
+            if (other.material.name.Contains("Water"))
+            {
+                impactKey = "WaterImpact";
+            }
 
             EffectManager.Instance.SpawnEffect(impactKey, hitPoint, hitNormal);
         }

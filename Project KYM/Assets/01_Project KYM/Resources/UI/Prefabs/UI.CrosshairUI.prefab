@@ -50,6 +50,7 @@ GameObject:
   - component: {fileID: 4023461527055152362}
   - component: {fileID: 2633791051870551985}
   - component: {fileID: 6714701667893289788}
+  - component: {fileID: 6007653949749309165}
   m_Layer: 5
   m_Name: UI.CrosshairUI
   m_TagString: Untagged
@@ -123,6 +124,24 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
+--- !u!114 &6007653949749309165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 838797645219349051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d20db03ea06c1f40b189349f300f3bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  crossTop: {fileID: 4523465767466658790}
+  crossBottom: {fileID: 2573747746160989149}
+  crossLeft: {fileID: 2703513308699132701}
+  crossRight: {fileID: 4724709757975929145}
+  spreadDistance: 50
+  recoverySpeed: 50
 --- !u!1 &1573751325308962529
 GameObject:
   m_ObjectHideFlags: 0

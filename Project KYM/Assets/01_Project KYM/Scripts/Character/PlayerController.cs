@@ -33,11 +33,10 @@ namespace KYM
             Quaternion spawnRotation = Quaternion.Euler(UserDataModel.Singleton.PlayerInfoDto.LastRotation);
             transform.SetPositionAndRotation(spawnPosition, spawnRotation); // 플레이어 위치와 회전 설정
 
-
             linkedCharacter.Initialize(GameDataModel.Singleton.PlayerStatDto.playerCharacterStatSO); // 캐릭터 스텟 초기화
+            linkedCharacter.InitWeapon(GameDataModel.Singleton.WeaponDataDto.weaponDataSO); // 무기 초기화 (나중에 다른 곳으로 갈 수도?)
 
             var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
-
             playerHUD.RefreshAmmoText(linkedCharacter.CurrentWeapon.CurAmmo, linkedCharacter.CurrentWeapon.MaxAmmo, linkedCharacter.CurrentWeapon.ReserveAmmo); // 탄약 텍스트 초기화
             playerHUD.RefreshHpUI(linkedCharacter.CurHP, linkedCharacter.MaxHP); // 체력 UI 초기화
             playerHUD.RefreshSpUI(linkedCharacter.CurSP, linkedCharacter.MaxSP); // 스태미너 UI 초기화

@@ -16,4 +16,14 @@ namespace KYM
             this.playerCharacterStatSO = dataSO;
         }
     }
+    
+    public class WeaponDataDto : GameDataDTO
+    {
+        [field: SerializeField] public WeaponDataSO weaponDataSO { get; private set; } // 무기 데이터 (ScriptableObject)
+
+        public void initialize(WeaponDataSO dataSO)
+        {
+            this.weaponDataSO = dataSO;
+        }
+    }
 }

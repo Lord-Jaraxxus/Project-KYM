@@ -50,6 +50,7 @@ namespace KYM
             // 하고싶은 커스텀 로직을 추가하세요.
 
             UIManager.Show<PlayerHUD>(UIList.PlayerHUD);
+            // UIManager.Show<CrosshairUI>(UIList.CrosshairUI);
         }
     }
 }

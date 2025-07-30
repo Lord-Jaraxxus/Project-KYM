@@ -19,7 +19,7 @@ namespace KYM
         [SerializeField] private Button charaInfoButton;
 
 
-        public void OnclickGoToTitleButton() 
+        public void OnclickGoToTitleButton()  
         {
             Main.Singleton.ChangeScene(SceneType.Title); // 타이틀 씬으로 변경
         }

@@ -63,31 +63,6 @@ namespace KYM
         public event System.Action<float, float> OnHpChanged; // 체력 변경 이벤트 (Callback) 
         public event System.Action<float, float> OnSpChanged; // 스태미너 변경 이벤트 (Callback)
 
-        public void Initialize(CharacterStatDataSO statDataSo) 
-        {
-            this.characterStat = statDataSo; // 캐릭터 스탯 데이터 초기화
-            this.curHP = UserDataModel.Singleton.PlayerInfoDto.LastCurHP;// 플레이어의 마지막 체력 불러옴
-            this.curSP = UserDataModel.Singleton.PlayerInfoDto.LastCurSP; // 플레이어의 마지막 스태미너 불러옴
-            int curAmmo = UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
-            int reserveAmmo = UserDataModel.Singleton.PlayerInfoDto.LastResAmmo; // 플레이어의 마지막 소지 탄약 불러옴
-
-            Transform rightHandTransform = animator.GetBoneTransform(HumanBodyBones.RightHand); // 오른손 Transform 가져오기 
-            currentWeapon = Instantiate(primaryWeapon, rightHandTransform); // 주 무기 인스턴스화
-            currentWeapon.transform.SetLocalPositionAndRotation(
-                new Vector3(-0.065f, 0, -0.0135f), // 무기 위치 설정
-                Quaternion.Euler(0, -78, 0)); // 무기 회전 설정
-                
-           currentWeapon.Init(this, curAmmo, reserveAmmo); // 현재 캐릭터로 무기 초기화 
-           
-            leftHandIKTarget.SetParent(currentWeapon.transform); // 왼손 IK 타겟을 현재 무기의 자식으로 설정
-            leftHandIKTarget.SetLocalPositionAndRotation(
-                currentWeapon.LeftHandIKOffsetPosition, 
-                Quaternion.Euler(currentWeapon.LeftHandIKOffsetRotation)); // 왼손 IK 타겟 위치와 회전 설정
-
-            var rigBuilder = GetComponentInChildren<RigBuilder>(); // RigBuilder 컴포넌트 가져오기
-            rigBuilder.Build(); // RigBuilder 빌드
-        }
-
         private void Awake()
         {
             animator = GetComponent<Animator>();
@@ -99,7 +74,7 @@ namespace KYM
 
         private void Update()
         {
-            runningblend = Mathf.Lerp(runningblend, (!IsWalk && curSP >0f && !isLockRunning) ? 1f : 0f, Time.deltaTime);
+            runningblend = Mathf.Lerp(runningblend, (!IsWalk && curSP > 0f && !isLockRunning) ? 1f : 0f, Time.deltaTime);
             crouchblend = Mathf.Lerp(crouchblend, IsCrouch ? 1f : 0f, Time.deltaTime * 10f);
 
             bool isAimingRigEnabled = IsAiming && !IsReloading; // 조준 중이면서 재장전 중이 아닐 때만 조준 Rig 활성화
@@ -110,6 +85,36 @@ namespace KYM
             animator.SetFloat("Aiming", aimingblend);
             animator.SetFloat("Crouch", crouchblend);
         }
+
+        public void Initialize(CharacterStatDataSO statDataSo) 
+        {
+            this.characterStat = statDataSo; // 캐릭터 스탯 데이터 초기화
+            this.curHP = UserDataModel.Singleton.PlayerInfoDto.LastCurHP;// 플레이어의 마지막 체력 불러옴
+            this.curSP = UserDataModel.Singleton.PlayerInfoDto.LastCurSP; // 플레이어의 마지막 스태미너 불러옴
+        }
+
+        public void InitWeapon(WeaponDataSO weaponDataSO) 
+        {
+            int curAmmo = UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
+            int reserveAmmo = UserDataModel.Singleton.PlayerInfoDto.LastResAmmo; // 플레이어의 마지막 소지 탄약 불러옴
+
+            Transform rightHandTransform = animator.GetBoneTransform(HumanBodyBones.RightHand); // 오른손 Transform 가져오기 
+            currentWeapon = Instantiate(primaryWeapon, rightHandTransform); // 주 무기 인스턴스화
+                currentWeapon.transform.SetLocalPositionAndRotation(
+                weaponDataSO.InitPosition, // 무기 위치 설정
+                Quaternion.Euler(weaponDataSO.InitRotation)); // 무기 회전 설정
+
+            currentWeapon.Init(this, curAmmo, reserveAmmo); // 현재 캐릭터로 무기 초기화
+
+            leftHandIKTarget.SetParent(currentWeapon.transform); // 왼손 IK 타겟을 현재 무기의 자식으로 설정
+            leftHandIKTarget.SetLocalPositionAndRotation(
+                weaponDataSO.LeftHandIKOffsetPosition, // 왼손 IK 타겟 위치 설정
+                Quaternion.Euler(weaponDataSO.LeftHandIKOffsetRotation)); // 왼손 IK 타겟 회전 설정
+
+            var rigBuilder = GetComponentInChildren<RigBuilder>(); // RigBuilder 컴포넌트 가져오기
+            rigBuilder.Build(); // RigBuilder 빌드
+        }
+
         
         public void SetMovementForward(Vector3 forward)
         {
@@ -165,6 +170,7 @@ namespace KYM
         public void Shoot()
         {
             currentWeapon.Fire(); // 현재 무기의 발사 메서드 호출
+            OnAmmoChanged?.Invoke(currentWeapon.CurAmmo, currentWeapon.MaxAmmo, currentWeapon.ReserveAmmo); // 탄약 변경 이벤트 호출
         }
 
         public void Reload()

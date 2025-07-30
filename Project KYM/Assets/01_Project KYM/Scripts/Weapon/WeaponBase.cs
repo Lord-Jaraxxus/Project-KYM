@@ -6,33 +6,40 @@ namespace KYM
 {
     public class WeaponBase : MonoBehaviour
     {
-        // "=>" 이렇게 적은 것을 Lambda(람다) 표현식이라고 합니다.
-        public Vector3 LeftHandIKOffsetPosition => leftHnadIKOffsetPosition; // 왼손 IK 오프셋 위치
-        public Vector3 LeftHandIKOffsetRotation => leftHandIKOffsetRotation; // 왼손 IK 오프셋 회전
-
         public int MaxAmmo => maxAmmo;
         public int CurAmmo => curAmmo;
         public int ReserveAmmo => reserveAmmo;
 
         [SerializeField] private Bullet bulletPrefeb; // 총알 프리팹
         [SerializeField] private Transform bulletSpawnPoint; // 총알 발사 위치
-        [SerializeField] private Vector3 leftHnadIKOffsetPosition; // 왼손 IK 오프셋 위치
-        [SerializeField] private Vector3 leftHandIKOffsetRotation; // 왼손 IK 오프셋 회전
 
-        private float fireRate = 0.3f; // 발사 속도
+
+        private float fireRate = 0f; // 발사 속도
         private float lastFireTime = 0f; // 마지막 발사 시간
 
-        private int maxAmmo = 30; // 최대 탄약 수
+        private int maxAmmo = 0; // 최대 탄약 수
         private int curAmmo = 30; // 현재 탄약 수
         private int reserveAmmo = 40; // 소지 탄약 수
 
         private CharacterBase onwerCharacter; // 총기의 소유자 캐릭터
+
+        public event System.Action<int> OnFired; // 발사 이벤트 (Callback) 
+        private CrosshairUI crosshairUI; // 크로스헤어 UI
 
         public void Init(CharacterBase owner, int curAmmo, int reserveAmmo)
         {
             this.onwerCharacter = owner; // 총기의 소유자 캐릭터 설정
             this.curAmmo = curAmmo; // 현재 탄약 수 설정
             this.reserveAmmo = reserveAmmo; // 소지 탄약 수 설정
+
+            this.maxAmmo = GameDataModel.Singleton.WeaponDataDto.weaponDataSO.MaxAmmo; // 최대 탄약 수 설정
+            this.fireRate = GameDataModel.Singleton.WeaponDataDto.weaponDataSO.FireRate; // 발사 속도 설정
+
+            crosshairUI = UIManager.Singleton.GetUI<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 가져오기
+            UIManager.Show<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 표시, 부트스트랩에서 안 키더라도 무기가 초기화되면 같이 생기도록
+            if (crosshairUI == null) // 크로스헤어 UI가 설정되지 않은 경우
+                crosshairUI = FindObjectOfType<CrosshairUI>(); // 현재 씬에서 CrosshairUI 찾기..? 이거맞나?
+            crosshairUI.Init(this); // 크로스헤어 UI 초기화 (발사 이벤트 연결함)
         }
 
         public bool Fire()
@@ -47,6 +54,8 @@ namespace KYM
 
                 lastFireTime = Time.time; // 마지막 발사 시간 업데이트
                 curAmmo--; // 현재 탄약 감소
+
+                OnFired?.Invoke(curAmmo); // 발사 이벤트 호출 (현재 탄약 수 전달)
 
                 return true; // 발사 성공
             }
