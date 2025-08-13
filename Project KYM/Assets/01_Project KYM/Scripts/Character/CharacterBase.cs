@@ -93,10 +93,10 @@ namespace KYM
             this.curSP = UserDataModel.Singleton.PlayerInfoDto.LastCurSP; // 플레이어의 마지막 스태미너 불러옴
         }
 
-        public void InitWeapon(WeaponDataSO weaponDataSO) 
+        public void InitWeapon(WeaponDataSO weaponDataSO, bool isNpc = false) 
         {
-            int curAmmo = UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
-            int reserveAmmo = UserDataModel.Singleton.PlayerInfoDto.LastResAmmo; // 플레이어의 마지막 소지 탄약 불러옴
+            int curAmmo = isNpc ? weaponDataSO.MaxAmmo : UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
+            int reserveAmmo = isNpc ? int.MaxValue : UserDataModel.Singleton.PlayerInfoDto.LastResAmmo; // 플레이어의 마지막 소지 탄약 불러옴
 
             Transform rightHandTransform = animator.GetBoneTransform(HumanBodyBones.RightHand); // 오른손 Transform 가져오기 
             currentWeapon = Instantiate(primaryWeapon, rightHandTransform); // 주 무기 인스턴스화

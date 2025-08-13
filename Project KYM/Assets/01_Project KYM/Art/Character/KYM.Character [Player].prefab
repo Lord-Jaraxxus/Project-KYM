@@ -633,6 +633,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: KYM.Character [Player]
       objectReference: {fileID: 0}
+    - target: {fileID: 6218659235422707282, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 6218659235422863986, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
