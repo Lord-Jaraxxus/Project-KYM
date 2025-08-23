@@ -1,16 +1,16 @@
 ﻿{
     "<LastPosition>k__BackingField": {
-        "x": -3.443302631378174,
+        "x": 2.8672938346862795,
         "y": 0.07999998331069946,
-        "z": 2.464332342147827
+        "z": 6.991425037384033
     },
     "<LastRotation>k__BackingField": {
         "x": 0.0,
-        "y": 351.39306640625,
+        "y": 88.71707916259766,
         "z": 0.0
     },
     "<LastCurHP>k__BackingField": 700.0,
-    "<LastCurSP>k__BackingField": 300.0,
-    "<LastCurAmmo>k__BackingField": 27,
-    "<LastResAmmo>k__BackingField": 37
+    "<LastCurSP>k__BackingField": 283.4483642578125,
+    "<LastCurAmmo>k__BackingField": 30,
+    "<LastResAmmo>k__BackingField": 34
 }

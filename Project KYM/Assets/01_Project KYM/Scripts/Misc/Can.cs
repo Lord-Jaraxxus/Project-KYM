@@ -24,7 +24,7 @@ public class Can : MonoBehaviour, IHittable
     //}
 
     // IHittable 인터페이스의 OnHit 메서드 구현
-    public void OnHit(int damage)
+    public void OnHit(float damage)
     {
         if (isHit) { return; } // 이미 충돌한 경우 무시
 

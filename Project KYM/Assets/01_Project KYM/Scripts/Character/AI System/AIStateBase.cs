@@ -9,6 +9,7 @@ namespace KYM
         None = 0,
         Patrol = 1,
         Combat = 2,
+        Abort = 3,
     }
     public abstract class AIStateBase : MonoBehaviour
     {

@@ -5,7 +5,7 @@ using UnityEngine.Animations.Rigging; // Rigging 관련 네임스페이스 추가 (필요한 
 
 namespace KYM
 {
-    public class CharacterBase : MonoBehaviour, IHasHp
+    public class CharacterBase : MonoBehaviour, IHasHp, IHittable
     {
 
         [SerializeField] private Rig aimingRig; // 조준 Rig (필요한 경우)
@@ -33,6 +33,7 @@ namespace KYM
         public bool IsAiming { get; set; } = false;
         public Vector3 Aimtarget { get; set; } 
         public bool IsReloading { get; private set; } = false;
+        public bool IsDead { get; private set; } = false;
 
         private Animator animator; // Animator 컴포넌트
         private CharacterController characterController; // CharacterController 컴포넌트
@@ -51,8 +52,8 @@ namespace KYM
         private float smoothHorizontal;
         private float smoothVertical;
 
-        private float curHP = 1000f; // 현재 체력
-        private float curSP = 100f; // 현재 스태미나
+        [SerializeField] private float curHP; // 현재 체력
+        [SerializeField] private float curSP; // 현재 스태미나
 
         public float SpConsumeRate => characterStat.SpConsumeRate;
         public float SpRecoverRate => characterStat.SpRecoveryRate;
@@ -62,6 +63,9 @@ namespace KYM
         public event System.Action<int, int, int> OnAmmoChanged; // 탄약 변경 이벤트 (Callback)
         public event System.Action<float, float> OnHpChanged; // 체력 변경 이벤트 (Callback) 
         public event System.Action<float, float> OnSpChanged; // 스태미너 변경 이벤트 (Callback)
+
+        public event System.Action<CharacterBase> OnCharacterMoribund; // 캐릭터 위기 상태 이벤트 (Callback) , AI용
+        [SerializeField] private float moribundThreshold = 0.3f; // 위기 상태 임계값 (예: 최대 체력의 30% 이하)
 
         private void Awake()
         {
@@ -89,8 +93,12 @@ namespace KYM
         public void Initialize(CharacterStatDataSO statDataSo) 
         {
             this.characterStat = statDataSo; // 캐릭터 스탯 데이터 초기화
-            this.curHP = UserDataModel.Singleton.PlayerInfoDto.LastCurHP;// 플레이어의 마지막 체력 불러옴
-            this.curSP = UserDataModel.Singleton.PlayerInfoDto.LastCurSP; // 플레이어의 마지막 스태미너 불러옴
+
+            if (characterStat.CharType == CharacterType.Player) 
+            {
+                this.curHP = UserDataModel.Singleton.PlayerInfoDto.LastCurHP;// 플레이어의 마지막 체력 불러옴
+                this.curSP = UserDataModel.Singleton.PlayerInfoDto.LastCurSP; // 플레이어의 마지막 스태미너 불러옴
+            }
         }
 
         public void InitWeapon(WeaponDataSO weaponDataSO, bool isNpc = false) 
@@ -123,6 +131,8 @@ namespace KYM
 
         public void Move(Vector2 input)
         {
+            if (IsDead) return; // 캐릭터가 죽은 상태라면 이동하지 않음
+
             bool isInputSomething = input.magnitude > 0.1f;
             if (!IsAiming) 
             {
@@ -169,6 +179,8 @@ namespace KYM
 
         public void Shoot()
         {
+            if (IsDead) return; // 캐릭터가 죽은 상태라면 발사하지 않음
+
             currentWeapon.Fire(); // 현재 무기의 발사 메서드 호출
             OnAmmoChanged?.Invoke(currentWeapon.CurAmmo, currentWeapon.MaxAmmo, currentWeapon.ReserveAmmo); // 탄약 변경 이벤트 호출
         }
@@ -193,18 +205,86 @@ namespace KYM
             OnAmmoChanged?.Invoke(currentWeapon.CurAmmo, currentWeapon.MaxAmmo, currentWeapon.ReserveAmmo); // 탄약 변경 이벤트 호출
         }
 
-        void IHasHp.TakeDamage(float damage)
+        // IHittable 인터페이스 구현
+        public void OnHit(float damage)
+        {
+            TakeDamage(damage);
+        }
+
+        // IHasHp 인터페이스 구현
+        public void TakeDamage(float damage)
         {
             curHP -= damage;
             curHP = Mathf.Clamp(curHP, 0f, this.MaxHP);
             OnHpChanged?.Invoke((int)curHP, (int)this.MaxHP);
+
+            if (curHP <= (this.MaxHP * moribundThreshold) && characterStat.CharType == CharacterType.AI) // 체력이 위기 상태 임계값 이하이고 AI 캐릭터인 경우
+            {
+                OnCharacterMoribund?.Invoke(this); // 캐릭터 위기 상태 이벤트 호출 (AI용)
+                // Debug.Log("AI Character is in moribund state."); // 디버그 로그 출력
+            }
+
+            if (curHP <= 0 && !IsDead)  // 체력이 0 이하이고 죽은 상태가 아닌 경우
+                Die();
         }
-        void IHasHp.Heal(float amount)
+
+        void Die() // 캐릭터가 죽었을 때 호출되는 메서드
+        {
+            IsDead = true; // 죽은 상태로 설정
+            animator.SetTrigger("IsDead"); // 죽음 애니메이션 트리거 설정
+
+            var brain = GetComponent<AIBrain>();
+            if (brain != null)
+            {
+                brain.enabled = false;
+                brain.AISensor.enabled = false; // AI 센서 비활성화
+                Debug.Log("AI Brain and Sensor disabled on death."); // 디버그 로그 출력
+            }
+
+            var aiController = GetComponent<AIController>();
+            if (aiController != null) 
+            {
+                aiController.enabled = false; // AI 컨트롤러 비활성화
+                Debug.Log("AI Controller disabled on death."); // 디버그 로그 출력
+            }
+           
+            if(characterStat.CharType == CharacterType.Player) 
+            {
+                characterController.enabled = false; // 플레이어 캐릭터 컨트롤러 비활성화
+                UIManager.Show<GameOverUI>(UIList.GameOverUI); // 게임 오버 UI 표시
+            }
+
+            StartCoroutine(DieRoutine()); // 죽음 후 일정 시간 후에 오브젝트 제거
+        }
+        private IEnumerator DieRoutine()
+        {
+            float deathDuration = 3f; // 죽음 애니메이션 지속 시간
+
+            if (characterStat.CharType == CharacterType.Player) // 플레이어 캐릭터인 경우
+            {
+                Time.timeScale = 0.3f; // 30% 속도로 느리게
+
+                yield return new WaitForSeconds(deathDuration);
+
+                Destroy(gameObject); // 캐릭터 오브젝트 제거;
+                Time.timeScale = 1f; // 시간 스케일 원래대로 복원
+                UIManager.Hide<GameOverUI>(UIList.GameOverUI); // 게임 오버 UI 숨김
+                Main.Singleton.ReloadScene(SceneType.Ingame); // 현재 씬을 다시 로드 (인게임 씬 리로드)   
+            }
+            else
+            {
+                yield return new WaitForSeconds(deathDuration);
+                Destroy(gameObject); // 캐릭터 오브젝트 제거;
+            }
+        }
+
+        public void Heal(float amount)
         {
             curHP += amount;
             curHP = Mathf.Clamp(curHP, 0f, this.MaxHP);
             OnHpChanged?.Invoke((int)curHP, (int)this.MaxHP);
         }
+
 
         public void ConsumeSp(float amount)
         {

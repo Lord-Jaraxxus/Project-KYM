@@ -15,6 +15,7 @@ namespace KYM
         TitleUI,
         PlayerHUD,
         CrosshairUI,
+        GameOverUI,
 
         PANEL_END,
     }

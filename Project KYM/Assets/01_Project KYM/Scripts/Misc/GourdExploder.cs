@@ -27,7 +27,7 @@ namespace KYM
             }
         }
 
-        public void OnHit(int damage)
+        public void OnHit(float damage)
         {
             Expolode(); // 폭발 메서드 호출
         }

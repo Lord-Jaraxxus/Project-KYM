@@ -10,6 +10,8 @@ namespace KYM
         public override AIStateType StateType => AIStateType.Combat;
 
         private CharacterBase target; // 타겟은 결국 "Player"가 될 것임
+        private float targetDistance; // 타겟과의 거리
+        [SerializeField] private float AttackRange = 3.0f; // 공격 범위 설정 (예: 5미터)
 
         public override void onEnterState(AIBrain brain)
         {
@@ -31,18 +33,16 @@ namespace KYM
         {
             if (target == null) return; // 타겟이 없으면 아무것도 하지 않음
 
-            brain.AIController.LinkedCharacter.IsAiming = true; // 타겟을 바라보는 상태로 설정
-            brain.AIController.LinkedCharacter.Rotate(target.transform.position); // 타겟의 위치를 바라보도록 회전
-            brain.AIController.LinkedCharacter.AimingPoint = target.transform.position; // 타겟의 위치를 바라보도록 설정
-
-            int curAmmo = brain.AIController.LinkedCharacter.CurrentWeapon.CurAmmo; // 현재 무기의 탄약 수를 가져옵니다.
-            if(curAmmo > 0)
+            targetDistance = Vector3.Distance(brain.transform.position, target.transform.position); // 타겟과의 거리 계산
+            if (targetDistance > AttackRange)
             {
-                brain.AIController.LinkedCharacter.Shoot(); // 공격을 수행합니다.
+                Chase(brain); // 타겟이 공격 범위를 벗어나면 추격
+                Debug.Log("Chasing Target. Distance: " + targetDistance);
             }
-            else
+            else 
             {
-                brain.AIController.LinkedCharacter.Reload(); // 탄약이 없으면 재장전을 수행합니다.
+                Attack(brain); // 타겟이 공격 범위 내에 있으면 공격
+                Debug.Log("Attacking Target. Distance: " + targetDistance);
             }
         }
 
@@ -51,5 +51,29 @@ namespace KYM
             target = character; // 감지된 캐릭터를 타겟으로 설정
         }
 
+        private void Chase(AIBrain brain) 
+        {
+           Vector3 Chasestination = target.transform.position; // 타겟의 현재 위치를 추격 목적지로 설정
+           brain.AIController.SetDestination(Chasestination); // AIController를 통해 NavMeshAgent의 목표 위치 설정
+        }
+
+        private void Attack(AIBrain brain) 
+        {
+            brain.AIController.SetDestination(transform.position); // CombatState에 진입하면 AI의 목적지를 현재 위치로 설정합니다. (이동을 멈추기 위함)
+
+            brain.AIController.LinkedCharacter.IsAiming = true; // 타겟을 바라보는 상태로 설정
+            brain.AIController.LinkedCharacter.Rotate(target.transform.position); // 타겟의 위치를 바라보도록 회전
+            brain.AIController.LinkedCharacter.AimingPoint = target.transform.position; // 타겟의 위치를 바라보도록 설정
+
+            int curAmmo = brain.AIController.LinkedCharacter.CurrentWeapon.CurAmmo; // 현재 무기의 탄약 수를 가져옵니다.
+            if (curAmmo > 0)
+            {
+                brain.AIController.LinkedCharacter.Shoot(); // 공격을 수행합니다.
+            }
+            else
+            {
+                brain.AIController.LinkedCharacter.Reload(); // 탄약이 없으면 재장전을 수행합니다.
+            }
+        }
     }
 }

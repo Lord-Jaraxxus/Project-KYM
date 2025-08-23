@@ -19,7 +19,7 @@ namespace KYM
             }
         }
 
-        public void OnHit(int damage)
+        public void OnHit(float damage)
         {
             if (TargetObj != null)
             {

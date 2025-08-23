@@ -12,5 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0117452e91084b249a70f5d15d5220b3, type: 3}
   m_Name: PlayerCharacterStatData
   m_EditorClassIdentifier: 
+  <CharType>k__BackingField: 0
+  <ID>k__BackingField: Player
   <MaxHP>k__BackingField: 1000
   <MaxSP>k__BackingField: 300
+  <SpConsumeRate>k__BackingField: 10
+  <SpRecoveryRate>k__BackingField: 5

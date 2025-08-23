@@ -64,6 +64,24 @@ namespace KYM
             }
         }
 
+        public void ReloadScene(SceneType sceneType = SceneType.None) // 현재 씬을 다시 로드하는 메서드
+        {
+            if (sceneType == SceneType.None) // 씬 타입이 지정되지 않은 경우 현재 씬 타입 사용
+                sceneType = currentSceneType;
+            
+            switch (sceneType)
+            {
+                case SceneType.Title: // 타이틀 씬
+                    ChangeScene<TitleScene>(sceneType);
+                    break;
+                case SceneType.Ingame: // 게임 씬
+                    ChangeScene<IngameScene>(sceneType); 
+                    break;
+                default:
+                    throw new System.NotImplementedException($"SceneType {sceneType} is not implemented.");
+            }
+        }
+
         private void ChangeScene<T>(SceneType sceneType, System.Action sceneLoadAfterCallback = null) where T : SceneBase // 제네릭 씬 변경 메서드
         {
             StartCoroutine(ChangeSceneAsync<T>(sceneType, sceneLoadAfterCallback)); // 비동기 씬 변경 코루틴 시작
