@@ -14,7 +14,8 @@ namespace KYM
         [SerializeField] private Transform aimingPoint; // 조준 포인트 (필요한 경우)
         [SerializeField] private WeaponBase primaryWeapon;  // 주 무기 프리팹
         [SerializeField] private WeaponBase secondaryWeapon; // 보조 무기 프리팹
-
+        
+        public AnimationEventListener AnimationEventListener => animationEventListener; // 애니메이션 이벤트 리스너 반환
         public WeaponBase CurrentWeapon => currentWeapon; // 현재 장착된 무기 반환
         public float MaxHP => characterStat.MaxHP;
         public float CurHP => curHP;
@@ -40,6 +41,7 @@ namespace KYM
         private CharacterController characterController; // CharacterController 컴포넌트
         private CharacterStatDataSO characterStat; // 캐릭터 스탯 데이터 (ScriptableObject)
         private WeaponBase currentWeapon; // 현재 장착된 무기
+        private AnimationEventListener animationEventListener; // 애니메이션 이벤트 리스너
 
         private float runningblend;
         private float crouchblend;
@@ -73,9 +75,28 @@ namespace KYM
         {
             animator = GetComponent<Animator>();
             characterController = GetComponent<CharacterController>();
+            animationEventListener = GetComponent<AnimationEventListener>();
 
             var reloadState = animator.GetBehaviour<ReloadStateMachineBehaviour>();
             reloadState.setCharacter(this); // 재장전 상태 머신 동작에 캐릭터 설정
+        }
+
+        private void Start()
+        {
+            animationEventListener.OnReceiveAnimationEvent += OnCallbackReceiveAnimationEvent; // 애니메이션 이벤트 리스너 콜백 등록
+        }
+        void OnCallbackReceiveAnimationEvent(string eventName) 
+        {
+            switch (eventName) 
+            {
+                case "PlayUnloadSound":
+                    currentWeapon?.PlayUnloadSound(); // 재장전 완료 처리
+                    break;
+
+                case "PlayLoadSound":
+                    currentWeapon?.PlayLoadSound(); // 재장전 완료 처리
+                    break;
+            }
         }
 
         private void Update()

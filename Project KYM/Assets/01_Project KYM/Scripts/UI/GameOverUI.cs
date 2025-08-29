@@ -16,7 +16,7 @@ namespace KYM
 
         public void OnClickRetryButton()
         {
-            Main.Singleton.ChangeScene(SceneType.Ingame); // 인게임 씬 리로드, 되나?
+            Main.Singleton.ReloadScene(SceneType.Ingame); // 인게임 씬 리로드, 되나?
             Debug.Log("Retry button clicked, reloading Ingame scene.");
 
             UIManager.Hide<GameOverUI>(UIList.GameOverUI); // 게임 오버 UI 숨김

@@ -520,16 +520,16 @@ ModelImporter:
       curves: []
       events:
       - time: 0.19477436
-        functionName: PlayUnloadSound
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e762989f48bd2d44598ebe924819762d, type: 3}
+        functionName: OnReceiveEvent
+        data: PlayUnloadSound
+        objectReferenceParameter: {fileID: 11500000, guid: d3c1c8b531b32c647a6af80a11226658, type: 3}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
       - time: 0.5096774
-        functionName: PlayLoadSound
-        data: 
-        objectReferenceParameter: {fileID: 11500000, guid: e762989f48bd2d44598ebe924819762d, type: 3}
+        functionName: OnReceiveEvent
+        data: PlayLoadSound
+        objectReferenceParameter: {fileID: 11500000, guid: d3c1c8b531b32c647a6af80a11226658, type: 3}
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
