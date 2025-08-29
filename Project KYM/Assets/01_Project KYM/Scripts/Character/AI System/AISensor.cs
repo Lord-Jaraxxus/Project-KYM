@@ -8,7 +8,10 @@ namespace KYM
     {
         public CharacterBase DetectedTarget => detectedTarget; // 현재 감지된 캐릭터를 외부에서 접근할 수 있도록 프로퍼티로 노출합니다.
 
+        [SerializeField] private LayerMask obstacleLayer; // 장애물 레이어
         [SerializeField] private float sensorRadius = 5f;
+        [SerializeField] private float viewDistance = 5f; // 시야 거리
+        [SerializeField] private float viewAngle = 120f; // 시야 각도 (나중에 추가할지도?)
 
         [Header("Sensor Components")]
         [SerializeField] private Rigidbody sensorRigidbody;
@@ -48,6 +51,15 @@ namespace KYM
         {
             if (other.TryGetComponent(out CharacterBase character))
             {
+                Vector3 origin = transform.position;
+                origin.y = character.transform.position.y; // 수평선상에서만 레이캐스트 검사
+                Physics.Raycast(origin, (character.transform.position - origin).normalized, out RaycastHit hitInfo, viewDistance, obstacleLayer);
+                if (hitInfo.collider != null && hitInfo.collider.gameObject != character.gameObject) // 장애물이 있으면 감지하지 않음 
+                {
+                    Debug.Log("장애물에 막혀 타겟이 감지되지 않았습니다.", this);
+                    return; 
+                } 
+
                 detectedTarget = character; // 감지된 캐릭터 저장
                 OnDetectedCharacterEvent?.Invoke(character);
             }

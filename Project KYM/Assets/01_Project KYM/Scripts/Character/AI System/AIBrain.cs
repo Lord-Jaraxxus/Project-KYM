@@ -9,6 +9,7 @@ namespace KYM
     {
         public AIController AIController => controller; // AIController를 외부에서 접근할 수 있도록 프로퍼티로 노출합니다.
         public AISensor AISensor => sensor; // AISensor를 외부에서 접근할 수 있도록 프로퍼티로 노출합니다.
+        public Dictionary<AIStateType, AIStateBase> StateMap => stateMap; // 상태 맵을 외부에서 접근할 수 있도록 프로퍼티로 노출합니다.
 
         [Header("State Componenets")]
         [SerializeField] private AIStateBase[] states;  // (인스펙터에서 설정해야함) AIStateBase를 상속받은 상태들을 저장할 배열입니다. 
@@ -45,6 +46,7 @@ namespace KYM
             sensor.OnLostCharacterEvent += OnCallbackLostCharacter; // sensor에서 OnLostCharacter 이벤트가 발생하면 CallbackLostCharacter 메서드를 호출합니다.
 
             aiCharacter.OnCharacterMoribund += OnCallbackCharacterMoribund; // aiCharacter에서 OnCharacterMoribund 이벤트가 발생하면 OnCallbackCharacterMoribund 메서드를 호출합니다.
+            aiCharacter.OnCharacterDead += OnCallbackCharacterDeadEvent; // aiCharacter에서 OnCharacterDead 이벤트가 발생하면 OnCallbackCharacterDeadEvent 메서드를 호출합니다.
         }
 
         private void Update()
@@ -61,7 +63,7 @@ namespace KYM
             }
         }
 
-        private void ChangeState(AIStateBase newState) 
+        public void ChangeState(AIStateBase newState) 
         {
             if (currentState == newState) return; // 현재 상태와 새 상태가 같으면 아무 작업도 하지 않습니다.
 
@@ -97,8 +99,14 @@ namespace KYM
             if (stateMap.TryGetValue(AIStateType.Abort, out AIStateBase abortState))
             {
                 ChangeState(abortState);
-                Debug.Log("Switched to Abort State.");
+                Debug.Log("Switched to Abort State.", this);
             }
+        }
+
+        private void OnCallbackCharacterDeadEvent() 
+        {
+            this.enabled = false; // AI 브레인을 비활성화하여 더 이상 업데이트되지 않도록 합니다.
+            controller.enabled = false; // AI 컨트롤러를 비활성화하여 더 이상 업데이트되지 않도록 합니다.
         }
     }
 }

@@ -61,8 +61,19 @@ namespace KYM
 
                 OnFired?.Invoke(curAmmo); // 발사 이벤트 호출 (현재 탄약 수 전달)
 
+                SoundManager.PlaySFX("SFX_Rifle_Shot", bulletSpawnPoint.position); // 총 발사 사운드 재생
+                if (CurAmmo == 1) // 탄약이 한 발 남은 경우
+                {
+                    SoundManager.PlaySFX("SFX_Rifle_Cock", bulletSpawnPoint.position); // 탄약 부족 사운드 재생
+                }
+
                 return true; // 발사 성공
             }
+            else if (curAmmo <= 0) // 현재 탄약이 0인 경우                        
+            {
+                SoundManager.PlaySFX("SFX_Rifle_DryShot", bulletSpawnPoint.position); // 탄약 없음 사운드 재생
+            }
+
             return false; // 발사 실패 (발사 속도 제한 또는 현재 탄약이 0인 경우)
         }
 
@@ -74,6 +85,16 @@ namespace KYM
             curAmmo += loadedAmmo; // 현재 탄약에 로드된 탄약 추가
             reserveAmmo -= loadedAmmo; // 소지 탄약에서 로드된 탄약 차감 
         }
+
+        public void PlayLoadSound() 
+        {
+            SoundManager.PlaySFX("SFX_Rifle_Load", bulletSpawnPoint.position); // 리로드 사운드 재생
+        }
+        public void PlayUnloadSound() 
+        {
+            SoundManager.PlaySFX("SFX_Rifle_Unload", bulletSpawnPoint.position); // 리로드 사운드 재생
+        }
+
         public void AddReserveAmmo(int amount) // 소지 탄약 추가 메서드
         {
             reserveAmmo += amount; // 소지 탄약을 amount만큼 추가 

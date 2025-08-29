@@ -29,11 +29,13 @@ namespace KYM
 
         private void Start()
         {
+            SoundManager.PlayBGM("BGM_Ingame"); // 메인 테마 음악 재생
+
             Vector3 spawnPosition = UserDataModel.Singleton.PlayerInfoDto.LastPosition;
             Quaternion spawnRotation = Quaternion.Euler(UserDataModel.Singleton.PlayerInfoDto.LastRotation);
             transform.SetPositionAndRotation(spawnPosition, spawnRotation); // 플레이어 위치와 회전 설정
 
-            linkedCharacter.Initialize(GameDataModel.Singleton.PlayerStatDto.playerCharacterStatSO); // 캐릭터 스텟 초기화
+            linkedCharacter.Initialize(GameDataModel.Singleton.PlayerStatDto.playerCharacterStatSO, true); // 캐릭터 스텟 초기화
             linkedCharacter.InitWeapon(GameDataModel.Singleton.WeaponDataDto.weaponDataSO); // 무기 초기화 (나중에 다른 곳으로 갈 수도?)
 
             var crosshairUI = UIManager.Singleton.GetUI<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 가져오기
@@ -50,6 +52,7 @@ namespace KYM
             linkedCharacter.OnAmmoChanged += playerHUD.RefreshAmmoText; // 탄약 변경 이벤트 구독
             linkedCharacter.OnHpChanged += playerHUD.RefreshHpUI; // 체력 변경 이벤트 구독
             linkedCharacter.OnSpChanged += playerHUD.RefreshSpUI; // 스태미너 변경 이벤트 구독
+            linkedCharacter.OnCharacterDead += OnCharacterDeadEvent; // 캐릭터 사망 이벤트 구독
 
             InputManager.Singleton.OnInputLmc += OnReceiveInputLmc;
             InputManager.Singleton.OnInputRmcUp += OnReceiveInputRmcUp;
@@ -63,7 +66,7 @@ namespace KYM
 
         private void OnDestroy()
         {
-            if (linkedCharacter) 
+            if (linkedCharacter)
             {
                 var playerHUD = UIManager.Singleton.GetUI<PlayerHUD>(UIList.PlayerHUD); // PlayerHUD 가져옴
                 linkedCharacter.OnAmmoChanged -= playerHUD.RefreshAmmoText; // 탄약 변경 이벤트 구독 해제
@@ -90,15 +93,15 @@ namespace KYM
         void OnReceiveInputSprintDown() => linkedCharacter.IsWalk = false; // 달리기 입력 (왼쪽 Shift 키 누름)
         void OnReceiveInputSprintUp() => linkedCharacter.IsWalk = true; // 달리기 입력 해제 (왼쪽 Shift 키 뗌)
         void OnReceieveInputSave() => Save(); // 저장 입력 처리
-        
-        public void Save() 
+
+        public void Save()
         {
             UserDataModel.Singleton.PlayerInfoDto.SetPositionAndRotation(transform.position, transform.rotation); // 현재 위치와 회전 저장
             UserDataModel.Singleton.PlayerInfoDto.SetLastCurHPSP(linkedCharacter.CurHP, linkedCharacter.CurSP); // 현재 체력과 스태미너 저장
             UserDataModel.Singleton.PlayerInfoDto.SetLastCurResAmmo(linkedCharacter.CurrentWeapon.CurAmmo, linkedCharacter.CurrentWeapon.ReserveAmmo); // 현재 탄약과 예비 탄약 저장
             UserDataModel.Singleton.PlayerInfoDto.SaveData(); // 데이터 저장
         }
-       
+
 
         private void Update()
         {
@@ -106,7 +109,7 @@ namespace KYM
 
             Vector2 inputMove = InputManager.Singleton.InputMove; // 이동 입력 벡터 가져오기
 
-            linkedCharacter.SetMovementForward(mainCamera.transform.forward); // 카메라의 전방 방향을 설정
+            linkedCharacter.SetMovementForward(mainCamera.transform.forward); // 카메라의 전방 방향으로 설정
             linkedCharacter.Move(inputMove); // 캐릭터 이동 처리
             linkedCharacter.Rotate(CameraSystem.Instance.AimingPoint); // 카메라 시스템에서 조준 지점을 가져와 회전 처리
             linkedCharacter.AimingPoint = CameraSystem.Instance.AimingPoint; // 캐릭터의 조준 지점을 카메라 시스템에서 가져옴
@@ -143,6 +146,23 @@ namespace KYM
             return Mathf.Clamp(angle, min, max);
         }
 
+        void OnCharacterDeadEvent()
+        {
+            UIManager.Show<GameOverUI>(UIList.GameOverUI); // 게임 오버 UI 표시
 
+            StartCoroutine(CharacterDeadRoutine());
+        }
+
+        IEnumerator CharacterDeadRoutine()
+        {
+            float deathDuration = 3f; // 죽음 애니메이션 지속 시간
+            Time.timeScale = 0.3f; // 30% 속도로 느리게
+
+            yield return new WaitForSeconds(deathDuration);
+            Time.timeScale = 1f; // 시간 정상화
+
+            UIManager.Hide<GameOverUI>(UIList.GameOverUI); // 게임 오버 UI 숨김
+            Main.Singleton.ReloadScene(SceneType.Ingame); // 현재 씬을 다시 로드 (인게임 씬 리로드)
+        }
     }
 }

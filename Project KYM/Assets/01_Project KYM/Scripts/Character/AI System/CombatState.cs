@@ -37,12 +37,12 @@ namespace KYM
             if (targetDistance > AttackRange)
             {
                 Chase(brain); // 타겟이 공격 범위를 벗어나면 추격
-                Debug.Log("Chasing Target. Distance: " + targetDistance);
+                // Debug.Log("Chasing Target. Distance: " + targetDistance);
             }
             else 
             {
                 Attack(brain); // 타겟이 공격 범위 내에 있으면 공격
-                Debug.Log("Attacking Target. Distance: " + targetDistance);
+                // Debug.Log("Attacking Target. Distance: " + targetDistance);
             }
         }
 
@@ -53,8 +53,9 @@ namespace KYM
 
         private void Chase(AIBrain brain) 
         {
-           Vector3 Chasestination = target.transform.position; // 타겟의 현재 위치를 추격 목적지로 설정
-           brain.AIController.SetDestination(Chasestination); // AIController를 통해 NavMeshAgent의 목표 위치 설정
+           brain.AIController.SetDestination(transform.position); // CombatState에 진입하면 AI의 목적지를 현재 위치로 설정합니다. (이동을 멈춰서 목적지를 초기화하기 위함)
+           Vector3 chaseDestination = target.transform.position; // 타겟의 현재 위치를 추격 목적지로 설정
+           brain.AIController.SetDestination(chaseDestination); // AIController를 통해 NavMeshAgent의 목표 위치 설정
         }
 
         private void Attack(AIBrain brain) 

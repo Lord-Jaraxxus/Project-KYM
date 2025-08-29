@@ -26,6 +26,9 @@ namespace KYM
             if (isInitialized)
                 return;
 
+            var soundManagerPrefab = Resources.Load<GameObject>("Sound/Prefab/KYM.SoundManager"); // 사운드 매니저 프리팹 로드
+            var soundManagerInst = Instantiate(soundManagerPrefab); // 사운드 매니저 인스턴스 생성
+
             UIManager.Singleton.Initialize(); // UIManager 초기화
             GameDataModel.Singleton.Initialize(); // GameDataModel 초기화
             UserDataModel.Singleton.Initialize(); // UserDataModel 초기화
@@ -55,9 +58,13 @@ namespace KYM
             {
                 case SceneType.Title: // 타이틀 씬으로 변경
                     ChangeScene<TitleScene>(sceneType, sceneLoadAfterCallback); // TitleScene 씬으로 변경
+                    SoundManager.StopAll(); // 모든 사운드 정지
+                    SoundManager.PlayBGM("BGM_Title"); // 타이틀 배경음악 재생
                     break;
                 case SceneType.Ingame: // 게임 씬으로 변경
                     ChangeScene<IngameScene>(sceneType, sceneLoadAfterCallback); // IngameScene 씬으로 변경
+                    SoundManager.StopAll(); // 모든 사운드 정지
+                    SoundManager.PlayBGM("BGM_Ingame"); // 게임 배경음악 재생
                     break;
                 default:
                     throw new System.NotImplementedException($"SceneType {sceneType} is not implemented.");

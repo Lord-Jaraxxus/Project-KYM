@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Animations.Rigging; // Rigging 관련 네임스페이스 추가 (필요한 경우)
 
@@ -63,6 +64,7 @@ namespace KYM
         public event System.Action<int, int, int> OnAmmoChanged; // 탄약 변경 이벤트 (Callback)
         public event System.Action<float, float> OnHpChanged; // 체력 변경 이벤트 (Callback) 
         public event System.Action<float, float> OnSpChanged; // 스태미너 변경 이벤트 (Callback)
+        public event System.Action OnCharacterDead; // 사망 이벤트 (Callback)
 
         public event System.Action<CharacterBase> OnCharacterMoribund; // 캐릭터 위기 상태 이벤트 (Callback) , AI용
         [SerializeField] private float moribundThreshold = 0.3f; // 위기 상태 임계값 (예: 최대 체력의 30% 이하)
@@ -90,11 +92,11 @@ namespace KYM
             animator.SetFloat("Crouch", crouchblend);
         }
 
-        public void Initialize(CharacterStatDataSO statDataSo) 
+        public void Initialize(CharacterStatDataSO statDataSo, bool isPlayer) 
         {
             this.characterStat = statDataSo; // 캐릭터 스탯 데이터 초기화
 
-            if (characterStat.CharType == CharacterType.Player) 
+            if(isPlayer)
             {
                 this.curHP = UserDataModel.Singleton.PlayerInfoDto.LastCurHP;// 플레이어의 마지막 체력 불러옴
                 this.curSP = UserDataModel.Singleton.PlayerInfoDto.LastCurSP; // 플레이어의 마지막 스태미너 불러옴
@@ -157,7 +159,7 @@ namespace KYM
             }
 
 
-                smoothHorizontal = Mathf.Lerp(smoothHorizontal, input.x, Time.deltaTime * 10f);
+            smoothHorizontal = Mathf.Lerp(smoothHorizontal, input.x, Time.deltaTime * 10f);
             smoothVertical = Mathf.Lerp(smoothVertical, input.y, Time.deltaTime * 10f);
 
             animator.SetFloat("Magnitude", input.magnitude);
@@ -232,50 +234,17 @@ namespace KYM
         {
             IsDead = true; // 죽은 상태로 설정
             animator.SetTrigger("IsDead"); // 죽음 애니메이션 트리거 설정
+            characterController.enabled = false; // 플레이어 캐릭터 컨트롤러 비활성화
 
-            var brain = GetComponent<AIBrain>();
-            if (brain != null)
-            {
-                brain.enabled = false;
-                brain.AISensor.enabled = false; // AI 센서 비활성화
-                Debug.Log("AI Brain and Sensor disabled on death."); // 디버그 로그 출력
-            }
-
-            var aiController = GetComponent<AIController>();
-            if (aiController != null) 
-            {
-                aiController.enabled = false; // AI 컨트롤러 비활성화
-                Debug.Log("AI Controller disabled on death."); // 디버그 로그 출력
-            }
-           
-            if(characterStat.CharType == CharacterType.Player) 
-            {
-                characterController.enabled = false; // 플레이어 캐릭터 컨트롤러 비활성화
-                UIManager.Show<GameOverUI>(UIList.GameOverUI); // 게임 오버 UI 표시
-            }
-
+            OnCharacterDead?.Invoke(); // 사망 이벤트 호출
             StartCoroutine(DieRoutine()); // 죽음 후 일정 시간 후에 오브젝트 제거
         }
         private IEnumerator DieRoutine()
         {
             float deathDuration = 3f; // 죽음 애니메이션 지속 시간
+            yield return new WaitForSeconds(deathDuration);
 
-            if (characterStat.CharType == CharacterType.Player) // 플레이어 캐릭터인 경우
-            {
-                Time.timeScale = 0.3f; // 30% 속도로 느리게
-
-                yield return new WaitForSeconds(deathDuration);
-
-                Destroy(gameObject); // 캐릭터 오브젝트 제거;
-                Time.timeScale = 1f; // 시간 스케일 원래대로 복원
-                UIManager.Hide<GameOverUI>(UIList.GameOverUI); // 게임 오버 UI 숨김
-                Main.Singleton.ReloadScene(SceneType.Ingame); // 현재 씬을 다시 로드 (인게임 씬 리로드)   
-            }
-            else
-            {
-                yield return new WaitForSeconds(deathDuration);
-                Destroy(gameObject); // 캐릭터 오브젝트 제거;
-            }
+            Destroy(gameObject); // 캐릭터 오브젝트 제거;
         }
 
         public void Heal(float amount)

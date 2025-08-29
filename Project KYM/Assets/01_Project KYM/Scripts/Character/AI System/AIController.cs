@@ -37,7 +37,7 @@ namespace KYM
             navAgent.stoppingDistance = stoppingDistance; // NavMeshAgent의 목표 위치에 도달했을 때의 최소 거리 설정
 
             var statData = GameDataModel.Singleton.MonsterDataDto.GetMonsterStatData(MonsterID); // 몬스터 스탯 데이터 가져오기
-            character.Initialize(statData.MonsterStat); // AI 캐릭터 스탯 초기화
+            character.Initialize(statData.MonsterStat, false); // AI 캐릭터 스탯 초기화
             character.InitWeapon(GameDataModel.Singleton.WeaponDataDto.weaponDataSO, true); // AI 캐릭터 무기 초기화
         }
 
@@ -92,6 +92,7 @@ namespace KYM
 
             Vector3 dir = toCorner.normalized; // 목표 위치 방향 벡터 계산
             Vector2 input = new Vector2(dir.x, dir.z); // 수평 입력 벡터 계산
+            // character.SetMovementForward(dir); // 에..... 왜 이거 설정하면 이상하게 움직이지
             character.Move(input); // 캐릭터 이동 처리
         }
 

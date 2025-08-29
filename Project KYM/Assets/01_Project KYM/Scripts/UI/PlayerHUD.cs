@@ -10,13 +10,14 @@ namespace KYM
     {
         [SerializeField] private TextMeshProUGUI ammoText;
         [SerializeField] private TextMeshProUGUI reserveAmmoText;
-        [SerializeField] private TextMeshProUGUI hpText; // 체력 텍스트 UI (추가)
-        [SerializeField] private TextMeshProUGUI spText; // 스태미너 텍스트 UI (추가)
-        [SerializeField] private Image hpBar; // 체력 바 UI (추가)
-        [SerializeField] private Image spBar; // 스태미너 바 UI (추가)
+        [SerializeField] private TextMeshProUGUI hpText; // 체력 텍스트 UI 
+        [SerializeField] private TextMeshProUGUI spText; // 스태미너 텍스트 UI
+        [SerializeField] private Image hpBar; // 체력 바 UI
+        [SerializeField] private Image spBar; // 스태미너 바 UI 
 
         [SerializeField] private CharacterInfoUI charaInfoUI;
         [SerializeField] private Button charaInfoButton;
+
 
 
         public void OnclickGoToTitleButton()  
@@ -27,7 +28,6 @@ namespace KYM
         public void OnclickInfoButton()
         {
             UIManager.Show<CharacterInfoUI>(UIList.CharacterInfoUI); // CharacterInfoUI 표시
-            // charaInfoUI.Open();
         }
 
         public void OnclickMenuButton() 
@@ -36,7 +36,8 @@ namespace KYM
         }
 
 
-public void RefreshAmmoText(int curAmmo, int maxAmmo, int reserveAmmo)
+
+        public void RefreshAmmoText(int curAmmo, int maxAmmo, int reserveAmmo)
         {
             ammoText.text = $"{curAmmo} / {maxAmmo}"; // 현재 탄약과 최대 탄약을 텍스트로 표시
             reserveAmmoText.text = $"{reserveAmmo}"; // 소지 탄약을 텍스트로 표시

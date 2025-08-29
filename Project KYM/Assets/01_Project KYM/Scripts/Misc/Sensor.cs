@@ -25,11 +25,11 @@ namespace KYM
                 // 감지된 오브젝트가 설정된 레이어 마스크에 포함되어 있는지 확인
                 if (((targetLayerMask & (1 << other.gameObject.layer)) != 0) && other.CompareTag(targetTag)) // 비트연산자 무엇;; 아무튼 태그도 같이 봄니다
                 {
-                    Debug.Log($"센서가 감지한 오브젝트 : {other.gameObject.name}");
+                    // Debug.Log($"센서가 감지한 오브젝트 : {other.gameObject.name}");
                 }
                 else
                 {
-                    Debug.LogWarning("센서에 들어온 오브젝트와 태그 혹은 레이어가 다릅니다.");
+                    // Debug.Log("센서에 들어온 오브젝트와 태그 혹은 레이어가 다릅니다.");
                 }
             }
         }
