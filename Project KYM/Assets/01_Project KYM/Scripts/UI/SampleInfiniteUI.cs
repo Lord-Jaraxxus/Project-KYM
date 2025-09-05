@@ -20,7 +20,14 @@ namespace KYM
             {
                 SampleInfiniteUI_ListData newData = new SampleInfiniteUI_ListData();
                 newData.color = Random.ColorHSV();
-                newData.message = $"Item Text : {i} Data";
+
+                int nameIndex = Random.Range(0, System.Enum.GetValues(typeof(ItemName)).Length);
+                ItemName itemName = (ItemName)nameIndex;
+                newData.name = itemName.ToString();
+
+                int imageIndex = Random.Range(0, System.Enum.GetValues(typeof(ItemImagePath)).Length);
+                ItemImagePath itemImage = (ItemImagePath)imageIndex;
+                newData.imagePath = itemImage.ToString();
 
                 infiniteScroll.InsertData(newData);
             }

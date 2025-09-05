@@ -54,7 +54,7 @@ namespace KYM
                 OnHitEnvironment(collider); // 환경에 충돌했을 때의 처리
             }
 
-            Debug.Log($"Bullet hit: {collider.name}"); // 디버그용 로그 출력
+            // Debug.Log($"Bullet hit: {collider.name}"); // 디버그용 로그 출력
         }
 
         private void OnHitEnvironment(Collider other)

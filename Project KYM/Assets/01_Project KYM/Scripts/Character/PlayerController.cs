@@ -62,6 +62,7 @@ namespace KYM
             InputManager.Singleton.OnInputSprintUp += OnReceiveInputSprintUp;
             InputManager.Singleton.OnInputSprintDown += OnReceiveInputSprintDown;
             InputManager.Singleton.OnInputSave += OnReceieveInputSave;
+            InputManager.Singleton.OnInputInteract += OnReceiveInputInteract;
         }
 
         private void OnDestroy()
@@ -82,6 +83,7 @@ namespace KYM
             InputManager.Singleton.OnInputSprintUp -= OnReceiveInputSprintUp;
             InputManager.Singleton.OnInputSprintDown -= OnReceiveInputSprintDown;
             InputManager.Singleton.OnInputSave -= OnReceieveInputSave;
+            InputManager.Singleton.OnInputInteract -= OnReceiveInputInteract;
         }
 
 
@@ -93,6 +95,18 @@ namespace KYM
         void OnReceiveInputSprintDown() => linkedCharacter.IsWalk = false; // 달리기 입력 (왼쪽 Shift 키 누름)
         void OnReceiveInputSprintUp() => linkedCharacter.IsWalk = true; // 달리기 입력 해제 (왼쪽 Shift 키 뗌)
         void OnReceieveInputSave() => Save(); // 저장 입력 처리
+        void OnReceiveInputInteract() // 상호작용 입력 처리
+        {
+            Ray ray = new Ray(mainCamera.transform.position, mainCamera.transform.forward); // 카메라 위치에서 전방으로 레이 생성
+            LayerMask layerMask = LayerMask.GetMask("Default"); // 레이어 마스크 설정 (예: Default 레이어만 감지)
+            if (Physics.Raycast(ray, out RaycastHit hitInfo, 3f, layerMask)) // 레이캐스트로 3미터 이내의 오브젝트 감지, 레이어는 default
+            {
+                var interactable = hitInfo.collider.GetComponent<IInteractable>(); // 감지된 오브젝트에서 IInteractable 인터페이스 가져오기
+                interactable?.Interact(); // 인터페이스가 존재하면 상호작용 메서드 호출
+
+                Debug.Log($"Interacted with: {hitInfo.collider.name}"); // 디버그 로그 출력
+            }
+        }
 
         public void Save()
         {

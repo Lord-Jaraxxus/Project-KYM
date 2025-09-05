@@ -18,6 +18,7 @@ namespace KYM
         public event System.Action OnInputSprintDown; // 달리기 입력 이벤트
         public event System.Action OnInputSprintUp; // 달리기 중지 입력 이벤트
         public event System.Action OnInputSave; // 저장 입력 이벤트
+        public event System.Action OnInputInteract; // 상호작용 입력 이벤트
 
         public bool IsForceCursorVisible
         {
@@ -107,6 +108,11 @@ namespace KYM
             if (Input.GetKeyDown(KeyCode.F9)) // Save
             {
                 OnInputSave?.Invoke(); // 저장 입력 이벤트 발생
+            }
+
+            if(Input.GetKeyDown(KeyCode.E)) // E 키를 눌렀을 때
+            {
+                OnInputInteract?.Invoke(); // 상호작용 입력 이벤트 발생
             }
         }
     }

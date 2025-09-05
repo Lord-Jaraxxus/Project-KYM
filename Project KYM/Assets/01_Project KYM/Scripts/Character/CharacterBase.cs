@@ -84,6 +84,7 @@ namespace KYM
         private void Start()
         {
             animationEventListener.OnReceiveAnimationEvent += OnCallbackReceiveAnimationEvent; // 애니메이션 이벤트 리스너 콜백 등록
+            InputManager.Singleton.OnInputInteract += OnReceiveInputInteract;
         }
         void OnCallbackReceiveAnimationEvent(string eventName) 
         {
@@ -97,6 +98,10 @@ namespace KYM
                     currentWeapon?.PlayLoadSound(); // 재장전 완료 처리
                     break;
             }
+        }
+        void OnReceiveInputInteract() 
+        {
+            animator.SetTrigger("IsInteract"); // 상호작용 애니메이션 트리거 설정
         }
 
         private void Update()

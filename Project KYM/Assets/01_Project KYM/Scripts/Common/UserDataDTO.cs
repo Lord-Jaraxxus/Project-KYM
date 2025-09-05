@@ -34,4 +34,10 @@ namespace KYM
 
         public void SaveData() => UserDataModel.Singleton.SaveData<PlayerInfoDto>(this);
     }
+
+    public class  PlayerItemDTO : UserDataDTO
+    {
+        [field: SerializeField] public ItemDataSO itemDataSO;
+        [field: SerializeField] public int Count;
+    }
 }

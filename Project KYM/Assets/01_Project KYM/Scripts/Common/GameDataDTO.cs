@@ -57,4 +57,14 @@ namespace KYM
             this.weaponDataSO = dataSO;
         }
     }
+
+    public class  ItemDataDTO : GameDataDTO
+    {
+        [field: SerializeField] public ItemDataSO itemDataSO { get; private set; }
+
+        public void initialize(ItemDataSO dataSO)
+        {
+            this.itemDataSO = dataSO;
+        }
+    }
 }
