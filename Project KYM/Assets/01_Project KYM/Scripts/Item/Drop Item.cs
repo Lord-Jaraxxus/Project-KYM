@@ -8,6 +8,9 @@ namespace KYM
     {
         [field : SerializeField] ItemDataSO itemDataSO; // 드롭 아이템의 데이터 (ScriptableObject)
 
+        [field: SerializeField] public GameEventListener gameEventListener; // 게임 이벤트 리스너, 에디터에서 연결 
+
+
         public void Interact() 
         {
             UserDataModel.Singleton.PlayerItemDtoDictionary.TryGetValue(itemDataSO.ItemName, out PlayerItemDTO playerItemDTO);
@@ -21,6 +24,7 @@ namespace KYM
                 UserDataModel.Singleton.PlayerItemDtoDictionary.Add(itemDataSO.ItemName, playerItemDTO); // 새 아이템이면 추가
             }
 
+            gameEventListener.OnReceiveEvent("LootItem", itemDataSO.ItemName);
             Destroy(gameObject); // 아이템 획득 시 오브젝트 제거 
         }
     }

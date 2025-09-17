@@ -6,15 +6,19 @@ using UnityEngine.Animations.Rigging; // Rigging 관련 네임스페이스 추가 (필요한 
 
 namespace KYM
 {
-    public class CharacterBase : MonoBehaviour, IHasHp, IHittable
+    public partial class CharacterBase : MonoBehaviour, IHasHp, IHittable
     {
 
         [SerializeField] private Rig aimingRig; // 조준 Rig (필요한 경우)
         [SerializeField] private Transform leftHandIKTarget; // 왼손 IK 타겟
         [SerializeField] private Transform aimingPoint; // 조준 포인트 (필요한 경우)
-        [SerializeField] private WeaponBase primaryWeapon;  // 주 무기 프리팹
-        [SerializeField] private WeaponBase secondaryWeapon; // 보조 무기 프리팹
-        
+
+        [SerializeField] private WeaponBase primaryWeaponPrefab;  // 주 무기 프리팹
+        [SerializeField] private WeaponBase secondaryWeaponPrefab; // 보조 무기 프리팹
+
+        [SerializeField] private WeaponBase primaryWeapon;  // 프리팹을 복제해서 생성한 진짜 주 무기
+        [SerializeField] private WeaponBase secondaryWeapon; // 프리팹을 복제해서 생성한 진짜 보조 무기
+
         public AnimationEventListener AnimationEventListener => animationEventListener; // 애니메이션 이벤트 리스너 반환
         public WeaponBase CurrentWeapon => currentWeapon; // 현재 장착된 무기 반환
         public float MaxHP => characterStat.MaxHP;
@@ -41,7 +45,10 @@ namespace KYM
         private CharacterController characterController; // CharacterController 컴포넌트
         private CharacterStatDataSO characterStat; // 캐릭터 스탯 데이터 (ScriptableObject)
         private WeaponBase currentWeapon; // 현재 장착된 무기
+        private WeaponBase targetWeapon; // 교체할 무기
         private AnimationEventListener animationEventListener; // 애니메이션 이벤트 리스너
+        private WeaponDataSO primaryWeaponDataSO; // 첫 번째 무기 데이터
+        private WeaponDataSO secondaryWeaponDataSO; // 두 번째 무기 데이터 
 
         private float runningblend;
         private float crouchblend;
@@ -64,6 +71,7 @@ namespace KYM
         private bool isLockRunning = false; // 달리기 잠금 상태 (필요한 경우)
 
         public event System.Action<int, int, int> OnAmmoChanged; // 탄약 변경 이벤트 (Callback)
+        public event System.Action <int, int, int> OnWeaponSwaped; // 무기 교체 이벤트 (Callback)
         public event System.Action<float, float> OnHpChanged; // 체력 변경 이벤트 (Callback) 
         public event System.Action<float, float> OnSpChanged; // 스태미너 변경 이벤트 (Callback)
         public event System.Action OnCharacterDead; // 사망 이벤트 (Callback)
@@ -78,7 +86,14 @@ namespace KYM
             animationEventListener = GetComponent<AnimationEventListener>();
 
             var reloadState = animator.GetBehaviour<ReloadStateMachineBehaviour>();
+            var equipState = animator.GetBehaviour<WeaponEquipStateMachineBehaviour>();
+            var holsterState = animator.GetBehaviour<WeaponHolsterStateMachineBehaviour>();
+
             reloadState.setCharacter(this); // 재장전 상태 머신 동작에 캐릭터 설정
+            equipState.SetCharacter(this); // 장착 상태 머신 동작에 캐릭터 설정
+            holsterState.SetCharacter(this); // 넣기 상태 머신 동작에 캐릭터 설정
+
+            rightHandSocketTransform = animator.GetBoneTransform(HumanBodyBones.RightHand); // 오른손 소켓 트랜스폼 설정
         }
 
         private void Start()
@@ -97,11 +112,20 @@ namespace KYM
                 case "PlayLoadSound":
                     currentWeapon?.PlayLoadSound(); // 재장전 완료 처리
                     break;
+
+                case "AttachEquip":
+                    OnEquipCompleted(); // 장착 완료 처리
+                    break;
+
+                case "DetachEquip":
+                    OnHolsterCompleted(); // 무기 넣기 완료 처리
+                    break;
+
             }
         }
         void OnReceiveInputInteract() 
         {
-            animator.SetTrigger("IsInteract"); // 상호작용 애니메이션 트리거 설정
+            animator.SetTrigger("Looting Trigger"); // 상호작용 애니메이션 트리거 설정
         }
 
         private void Update()
@@ -109,7 +133,7 @@ namespace KYM
             runningblend = Mathf.Lerp(runningblend, (!IsWalk && curSP > 0f && !isLockRunning) ? 1f : 0f, Time.deltaTime);
             crouchblend = Mathf.Lerp(crouchblend, IsCrouch ? 1f : 0f, Time.deltaTime * 10f);
 
-            bool isAimingRigEnabled = IsAiming && !IsReloading; // 조준 중이면서 재장전 중이 아닐 때만 조준 Rig 활성화
+            bool isAimingRigEnabled = IsAiming && !IsReloading && !IsProgressSwapWeapon; // 조준 중이면서 재장전 중이 아닐 때만 조준 Rig 활성화
             aimingblend = Mathf.Lerp(aimingblend, isAimingRigEnabled ? 1f : 0f, Time.deltaTime * 10f);
             aimingRig.weight = aimingblend; // 조준 Rig의 가중치 설정 (필요한 경우)
 
@@ -129,23 +153,35 @@ namespace KYM
             }
         }
 
-        public void InitWeapon(WeaponDataSO weaponDataSO, bool isNpc = false) 
+        public void InitWeapon(bool isNpc = false) 
         {
-            int curAmmo = isNpc ? weaponDataSO.MaxAmmo : UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
+            WeaponDataDto dto; 
+            GameDataModel.Singleton.WeaponDataMap.TryGetValue("Rifle 1", out dto);
+            this.primaryWeaponDataSO = dto.weaponDataSO; // 무기 데이터 초기화
+            GameDataModel.Singleton.WeaponDataMap.TryGetValue("Rifle 2", out dto); // 보조 무기 데이터 DTO 가져오기
+            this.secondaryWeaponDataSO = dto.weaponDataSO; // 보조 무기 데이터 초기화
+
+            int curAmmo = isNpc ? primaryWeaponDataSO.MaxAmmo : UserDataModel.Singleton.PlayerInfoDto.LastCurAmmo; // 플레이어의 마지막 현재 탄약 불러옴
             int reserveAmmo = isNpc ? int.MaxValue : UserDataModel.Singleton.PlayerInfoDto.LastResAmmo; // 플레이어의 마지막 소지 탄약 불러옴
-
-            Transform rightHandTransform = animator.GetBoneTransform(HumanBodyBones.RightHand); // 오른손 Transform 가져오기 
-            currentWeapon = Instantiate(primaryWeapon, rightHandTransform); // 주 무기 인스턴스화
+ 
+            currentWeapon = primaryWeapon = Instantiate(primaryWeaponPrefab, rightHandSocketTransform); // 주 무기 인스턴스화
                 currentWeapon.transform.SetLocalPositionAndRotation(
-                weaponDataSO.InitPosition, // 무기 위치 설정
-                Quaternion.Euler(weaponDataSO.InitRotation)); // 무기 회전 설정
+                primaryWeaponDataSO.InitPosition, // 무기 위치 설정
+                Quaternion.Euler(primaryWeaponDataSO.InitRotation)); // 무기 회전 설정
 
-            currentWeapon.Init(this, curAmmo, reserveAmmo); // 현재 캐릭터로 무기 초기화
+            currentWeapon.Init(this, curAmmo, reserveAmmo, primaryWeaponDataSO); // 현재 캐릭터로 무기 초기화
+
+            if (secondaryWeaponPrefab) 
+            {
+                secondaryWeapon = Instantiate(secondaryWeaponPrefab, holsterSocketTransform); // 보조 무기 인스턴스화
+                secondaryWeapon.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity); // 보조 무기 위치 및 회전 설정
+                secondaryWeapon.Init(this, secondaryWeaponDataSO.MaxAmmo, secondaryWeaponDataSO.MaxAmmo, secondaryWeaponDataSO); // 보조 무기 초기화 (탄약은 최대치로 설정)
+            }
 
             leftHandIKTarget.SetParent(currentWeapon.transform); // 왼손 IK 타겟을 현재 무기의 자식으로 설정
             leftHandIKTarget.SetLocalPositionAndRotation(
-                weaponDataSO.LeftHandIKOffsetPosition, // 왼손 IK 타겟 위치 설정
-                Quaternion.Euler(weaponDataSO.LeftHandIKOffsetRotation)); // 왼손 IK 타겟 회전 설정
+                primaryWeaponDataSO.LeftHandIKOffsetPosition, // 왼손 IK 타겟 위치 설정
+                Quaternion.Euler(primaryWeaponDataSO.LeftHandIKOffsetRotation)); // 왼손 IK 타겟 회전 설정
 
             var rigBuilder = GetComponentInChildren<RigBuilder>(); // RigBuilder 컴포넌트 가져오기
             rigBuilder.Build(); // RigBuilder 빌드
@@ -167,8 +203,12 @@ namespace KYM
                 if (isInputSomething) 
                 {
                     Vector3 inputDir = new Vector3(input.x, 0, input.y).normalized;
-                    Vector3 worldDirection = Quaternion.LookRotation(movementForward) * inputDir;
-                    targetRotation = Quaternion.LookRotation(worldDirection).eulerAngles.y;
+
+                    if (movementForward.sqrMagnitude > 0.001f) 
+                    {
+                        Vector3 worldDirection = Quaternion.LookRotation(movementForward) * inputDir;
+                        targetRotation = Quaternion.LookRotation(worldDirection).eulerAngles.y;
+                    }
 
                     float roatation = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation, ref rotationVelocity, roatationSmoothTime);
                     transform.rotation = Quaternion.Euler(0, roatation, 0);

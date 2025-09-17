@@ -38,7 +38,10 @@ namespace KYM
 
             var statData = GameDataModel.Singleton.MonsterDataDto.GetMonsterStatData(MonsterID); // 몬스터 스탯 데이터 가져오기
             character.Initialize(statData.MonsterStat, false); // AI 캐릭터 스탯 초기화
-            character.InitWeapon(GameDataModel.Singleton.WeaponDataDto.weaponDataSO, true); // AI 캐릭터 무기 초기화
+
+            WeaponDataDto dto;
+            GameDataModel.Singleton.WeaponDataMap.TryGetValue("Rifle 1", out dto); // 무기 데이터 DTO 가져오기
+            character.InitWeapon(true); // AI 캐릭터 무기 초기화
         }
 
         void Update()

@@ -7,6 +7,7 @@ namespace KYM
 
         CharacterInfoUI,
         MenuUI,
+        DepthUI,
 
         POPUP_END, // 게임 종료 팝업 UI
         PANEL_START, 

@@ -418,7 +418,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4208890bd6945746aa1083bee0d5575, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 1
   sensorRadius: 5
+  viewDistance: 5
+  viewAngle: 120
   sensorRigidbody: {fileID: 0}
   sensorCollider: {fileID: 0}
 --- !u!1 &5602956484201938513
@@ -911,11 +916,15 @@ PrefabInstance:
     - target: {fileID: -6323689987706383008, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       propertyPath: primaryWeapon
       value: 
-      objectReference: {fileID: 2448849717195939337, guid: 79eaa1d4befa5da44977e9d4841e1b6f, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: -6323689987706383008, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       propertyPath: leftHandIKTarget
       value: 
       objectReference: {fileID: 2115677008225562717}
+    - target: {fileID: -6323689987706383008, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
+      propertyPath: primaryWeaponPrefab
+      value: 
+      objectReference: {fileID: 2448849717195939337, guid: 79eaa1d4befa5da44977e9d4841e1b6f, type: 3}
     - target: {fileID: 6218659235413355732, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 1
@@ -1000,9 +1009,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: KYM.Character [AI]
       objectReference: {fileID: 0}
+    - target: {fileID: 6218659235422863872, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -21.37
+      objectReference: {fileID: 0}
+    - target: {fileID: 6218659235422863872, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.92
+      objectReference: {fileID: 0}
+    - target: {fileID: 6218659235422863872, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 8.34
+      objectReference: {fileID: 0}
     - target: {fileID: 6218659235422863986, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 9.74
+      value: -0.62
       objectReference: {fileID: 0}
     - target: {fileID: 6218659235422863986, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1010,7 +1031,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6218659235422863986, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 9.65
+      value: 9.66
       objectReference: {fileID: 0}
     - target: {fileID: 6218659235422863986, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1087,6 +1108,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6218659235422707282, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6838939341768585373}
+    - targetCorrespondingSourceObject: {fileID: 6218659235422707282, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7910528834191822151}
   m_SourcePrefab: {fileID: 100100000, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}
 --- !u!1 &3741179165096419512 stripped
 GameObject:
@@ -1168,6 +1192,18 @@ MonoBehaviour:
   - m_Rig: {fileID: 5977172889797713469}
     m_Active: 1
   m_Effectors: []
+--- !u!114 &7910528834191822151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3741179165096419512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3c1c8b531b32c647a6af80a11226658, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &3741179165096656024 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6218659235422863986, guid: d145003eca01cd647a6ceb6166bfb908, type: 3}

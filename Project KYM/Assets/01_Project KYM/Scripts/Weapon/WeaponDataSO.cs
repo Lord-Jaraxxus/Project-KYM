@@ -7,6 +7,9 @@ namespace KYM
     [CreateAssetMenu(fileName = "WeaponData", menuName = "PROJECT KYM/WeaponData")]
     public class WeaponDataSO : ScriptableObject
     {
+        [field: SerializeField] public string WeaponId { get; set; } // 무기 Id
+        [field: SerializeField] public string WeaponName { get; set; } // 무기 이름
+
         [field: SerializeField] public int MaxAmmo { get; set; } // 최대 탄약 수
         [field: SerializeField] public Vector3 LeftHandIKOffsetPosition { get; set; } // 왼손 IK 오프셋 위치
         [field: SerializeField] public Vector3 LeftHandIKOffsetRotation { get; set; } // 왼손 IK 오프셋 회전

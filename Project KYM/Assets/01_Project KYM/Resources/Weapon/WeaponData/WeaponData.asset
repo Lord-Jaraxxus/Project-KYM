@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 618f079a43b403f4180cf4cea67c000d, type: 3}
   m_Name: WeaponData
   m_EditorClassIdentifier: 
+  <WeaponId>k__BackingField: Rifle 1
+  <WeaponName>k__BackingField: Blue
   <MaxAmmo>k__BackingField: 30
   <LeftHandIKOffsetPosition>k__BackingField: {x: -0.052, y: 0.081, z: 0.267}
   <LeftHandIKOffsetRotation>k__BackingField: {x: -78.122, y: 79.634, z: 422.726}

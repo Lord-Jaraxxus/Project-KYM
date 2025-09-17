@@ -16,9 +16,14 @@ namespace KYM
             Gizmos.DrawLine(Camera.main.transform.position, Camera.main.transform.position + Camera.main.transform.forward * 100f); // 카메라 위치에서 앞으로 100 단위 길이의 선 그리기
         }
 
+        private string weaponId; // 총기 ID
+        private string weaponName; // 총기 이름      
+
+        public WeaponDataSO WeaponDataSO => weaponDataSO; // 무기 데이터 (ScriptableObject) 접근자
         public int MaxAmmo => maxAmmo;
         public int CurAmmo => curAmmo;
         public int ReserveAmmo => reserveAmmo;
+        public float Damage => damage;
 
         [SerializeField] private Bullet bulletPrefeb; // 총알 프리팹
         [SerializeField] private Transform bulletSpawnPoint; // 총알 발사 위치
@@ -28,22 +33,26 @@ namespace KYM
         private float lastFireTime = 0f; // 마지막 발사 시간
 
         private int maxAmmo = 0; // 최대 탄약 수
-        private int curAmmo = 30; // 현재 탄약 수
-        private int reserveAmmo = 40; // 소지 탄약 수
+        private int curAmmo = 0; // 현재 탄약 수
+        private int reserveAmmo = 0; // 소지 탄약 수
+        private float damage = 0f; // 총기 데미지
+        WeaponDataSO weaponDataSO; // 무기 데이터 (ScriptableObject)
 
         private CharacterBase onwerCharacter; // 총기의 소유자 캐릭터
 
         public event System.Action<int> OnFired; // 발사 이벤트 (Callback) 
         private CrosshairUI crosshairUI; // 크로스헤어 UI
 
-        public void Init(CharacterBase owner, int curAmmo, int reserveAmmo)
+        public void Init(CharacterBase owner, int curAmmo, int reserveAmmo, WeaponDataSO so)
         {
             this.onwerCharacter = owner; // 총기의 소유자 캐릭터 설정
             this.curAmmo = curAmmo; // 현재 탄약 수 설정
             this.reserveAmmo = reserveAmmo; // 소지 탄약 수 설정
 
-            this.maxAmmo = GameDataModel.Singleton.WeaponDataDto.weaponDataSO.MaxAmmo; // 최대 탄약 수 설정
-            this.fireRate = GameDataModel.Singleton.WeaponDataDto.weaponDataSO.FireRate; // 발사 속도 설정
+            this.weaponDataSO = so; // 무기 데이터 설정
+            this.damage = so.Damage; // 총기 데미지 설정
+            this.maxAmmo = so.MaxAmmo; // 최대 탄약 수 설정
+            this.fireRate = so.FireRate; // 발사 속도 설정
         }
 
         public bool Fire()

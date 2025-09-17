@@ -10,11 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 618f079a43b403f4180cf4cea67c000d, type: 3}
-  m_Name: WeaponData [Pistol]
+  m_Name: WeaponData [Secondary]
   m_EditorClassIdentifier: 
-  <MaxAmmo>k__BackingField: 30
+  <WeaponId>k__BackingField: Rifle 2
+  <WeaponName>k__BackingField: Red
+  <MaxAmmo>k__BackingField: 20
   <LeftHandIKOffsetPosition>k__BackingField: {x: -0.052, y: 0.081, z: 0.267}
   <LeftHandIKOffsetRotation>k__BackingField: {x: -78.122, y: 79.634, z: 422.726}
   <InitPosition>k__BackingField: {x: -0.065, y: 0, z: -0.0135}
   <InitRotation>k__BackingField: {x: 0, y: -78, z: 0}
   <FireRate>k__BackingField: 0.3
+  <Damage>k__BackingField: 30

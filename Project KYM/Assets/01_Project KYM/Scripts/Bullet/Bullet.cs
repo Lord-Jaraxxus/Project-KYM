@@ -101,7 +101,8 @@ namespace KYM
             Vector3 hitPoint = transform.position; // 충돌 지점
             Quaternion hitNormal = Quaternion.LookRotation(-transform.forward, transform.up); // 충돌 노멀 방향
 
-            hittable.OnHit(GameDataModel.Singleton.WeaponDataDto.weaponDataSO.Damage); // IHittable 인터페이스를 통해 피해를 입힙니다.
+
+            hittable.OnHit(shooter.CurrentWeapon.Damage); // IHittable 인터페이스를 통해 피해를 입힙니다.
             EffectManager.Instance.SpawnEffect("WaterImpact", hitPoint, hitNormal); // 총알이 적중했을 때의 효과 생성, 일단 임시로 물!
 
             Destroy(gameObject); // 총알을 파괴합니다.

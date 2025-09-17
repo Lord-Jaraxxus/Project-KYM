@@ -29,6 +29,7 @@ namespace KYM
 
         private void Start()
         {
+            UIManager.Show<DepthUI>(UIList.DepthUI); // DepthUI 표시
             SoundManager.PlayBGM("BGM_Ingame"); // 메인 테마 음악 재생
 
             Vector3 spawnPosition = UserDataModel.Singleton.PlayerInfoDto.LastPosition;
@@ -36,7 +37,8 @@ namespace KYM
             transform.SetPositionAndRotation(spawnPosition, spawnRotation); // 플레이어 위치와 회전 설정
 
             linkedCharacter.Initialize(GameDataModel.Singleton.PlayerStatDto.playerCharacterStatSO, true); // 캐릭터 스텟 초기화
-            linkedCharacter.InitWeapon(GameDataModel.Singleton.WeaponDataDto.weaponDataSO); // 무기 초기화 (나중에 다른 곳으로 갈 수도?)
+            linkedCharacter.InitWeapon(); // 무기 초기화 (나중에 다른 곳으로 갈 수도?)
+ 
 
             var crosshairUI = UIManager.Singleton.GetUI<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 가져오기
             UIManager.Show<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 표시, 부트스트랩에서 안 키더라도 무기가 초기화되면 같이 생기도록
@@ -50,6 +52,7 @@ namespace KYM
             playerHUD.RefreshSpUI(linkedCharacter.CurSP, linkedCharacter.MaxSP); // 스태미너 UI 초기화
 
             linkedCharacter.OnAmmoChanged += playerHUD.RefreshAmmoText; // 탄약 변경 이벤트 구독
+            linkedCharacter.OnWeaponSwaped += playerHUD.RefreshAmmoText; // 무기 교체 이벤트 구독
             linkedCharacter.OnHpChanged += playerHUD.RefreshHpUI; // 체력 변경 이벤트 구독
             linkedCharacter.OnSpChanged += playerHUD.RefreshSpUI; // 스태미너 변경 이벤트 구독
             linkedCharacter.OnCharacterDead += OnCharacterDeadEvent; // 캐릭터 사망 이벤트 구독
@@ -63,6 +66,8 @@ namespace KYM
             InputManager.Singleton.OnInputSprintDown += OnReceiveInputSprintDown;
             InputManager.Singleton.OnInputSave += OnReceieveInputSave;
             InputManager.Singleton.OnInputInteract += OnReceiveInputInteract;
+            InputManager.Singleton.OnInputPrimaryWeapon += OnReceiveInputPrimaryWeapon;
+            InputManager.Singleton.OnInputSecondaryWeapon += OnReceiveInputSecondaryWeapon;
         }
 
         private void OnDestroy()
@@ -107,6 +112,10 @@ namespace KYM
                 Debug.Log($"Interacted with: {hitInfo.collider.name}"); // 디버그 로그 출력
             }
         }
+
+        void OnReceiveInputPrimaryWeapon() => linkedCharacter.TryEquipToPrimaryWeapon();
+        void OnReceiveInputSecondaryWeapon() => linkedCharacter.TryEquipToSecondaryWeapon();
+
 
         public void Save()
         {

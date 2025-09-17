@@ -29,6 +29,8 @@ namespace KYM
         private Dictionary<UIList, UIBase> panels = new Dictionary<UIList, UIBase>(); // 패널 UI를 저장할 딕셔너리
         private Dictionary<UIList, UIBase> popups = new Dictionary<UIList, UIBase>(); // 팝업 UI를 저장할 딕셔너리
 
+        public Camera UICamera { get; private set; } // UI 카메라
+
         public void Initialize()
         {
             if ((panelRoot == null))
@@ -59,6 +61,21 @@ namespace KYM
             for (int index = (int)UIList.POPUP_START + 1; index < (int)UIList.POPUP_END; index++)
             {
                 popups.Add((UIList)index, null); // 팝업 딕셔너리에 초기화
+            }
+
+            if (!UICamera) // UI Camera 생성
+            {
+                GameObject newUICameraGo = new GameObject("UI Camera"); // UI 카메라 생성
+                newUICameraGo.transform.SetParent(this.transform); // UIManager의 자식으로 설정
+                newUICameraGo.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity); // 위치와 회전 초기화
+                UICamera = newUICameraGo.AddComponent<Camera>(); // 카메라 컴포넌트 추가
+                UICamera.clearFlags = CameraClearFlags.Depth; // 카메라 설정
+                UICamera.cullingMask = LayerMask.GetMask("UI"); // UI 레이어만 렌더링
+                UICamera.fieldOfView = 60f;
+                UICamera.nearClipPlane = 0.3f;
+                UICamera.farClipPlane = 1000f;
+                UICamera.orthographic = false;
+                UICamera.depth = 10; // 다른 카메라보다 위에 렌더링 되도록 설정
             }
         }
 
@@ -91,6 +108,16 @@ namespace KYM
                 if (container[uiName])
                 {
                     container[uiName].gameObject.SetActive(false); // UI를 비활성화 상태로 설정
+                }
+
+                if (container[uiName].TryGetComponent(out UIBase uiBase)) 
+                {
+                    if(uiBase.IsDepthUI) // UI가 Depth UI인지 확인
+                    {
+                        Canvas canvas = uiBase.GetComponent<Canvas>();
+                        canvas.renderMode = RenderMode.ScreenSpaceCamera; // 캔버스 렌더 모드를 ScreenSpaceCamera로 설정
+                        canvas.worldCamera = this.UICamera; // 메인 카메라를 설정
+                    }
                 }
             }
             return (T)container[uiName]; // UI 반환

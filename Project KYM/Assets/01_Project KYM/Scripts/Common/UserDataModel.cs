@@ -9,7 +9,7 @@ namespace KYM
     {
         public const string EditorUserDataPath = "Assets/01_Project KYM/Anothers/UserData/";
         [field: SerializeField] public PlayerInfoDto PlayerInfoDto { get; private set; } = new();
-        [field: SerializeField] public Dictionary<string, PlayerItemDTO> PlayerItemDtoDictionary { get; private set; } = new();
+        [field: SerializeField] public Dictionary<string /* Item Name */, PlayerItemDTO> PlayerItemDtoDictionary { get; private set; } = new();
 
         public void Initialize()
         {
