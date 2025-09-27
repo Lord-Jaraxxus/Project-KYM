@@ -29,7 +29,6 @@ namespace KYM
 
         private void Start()
         {
-            UIManager.Show<DepthUI>(UIList.DepthUI); // DepthUI 표시
             SoundManager.PlayBGM("BGM_Ingame"); // 메인 테마 음악 재생
 
             Vector3 spawnPosition = UserDataModel.Singleton.PlayerInfoDto.LastPosition;
@@ -38,7 +37,15 @@ namespace KYM
 
             linkedCharacter.Initialize(GameDataModel.Singleton.PlayerStatDto.playerCharacterStatSO, true); // 캐릭터 스텟 초기화
             linkedCharacter.InitWeapon(); // 무기 초기화 (나중에 다른 곳으로 갈 수도?)
- 
+            
+            GameObject sensorGo = new GameObject("Interaction Sensor"); // 상호작용 센서 게임 오브젝트 생성
+            sensorGo.transform.SetParent(transform); // 플레이어 오브젝트의 자식으로 설정
+            InteractionSensor sensor = sensorGo.AddComponent<InteractionSensor>(); // InteractionSensor 컴포넌트 추가
+            sensor.OnDetectedInteractable += onDetectedInteractable;
+            sensor.OnLostInteractable += OnLostInteractable;
+            sensor.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity); // 플레이어 위치에 맞게 설정
+
+            UIManager.Show<InteractionUI>(UIList.InteractionUI); // 상호작용 UI 표시
 
             var crosshairUI = UIManager.Singleton.GetUI<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 가져오기
             UIManager.Show<CrosshairUI>(UIList.CrosshairUI); // 크로스헤어 UI 표시, 부트스트랩에서 안 키더라도 무기가 초기화되면 같이 생기도록
@@ -186,6 +193,24 @@ namespace KYM
 
             UIManager.Hide<GameOverUI>(UIList.GameOverUI); // 게임 오버 UI 숨김
             Main.Singleton.ReloadScene(SceneType.Ingame); // 현재 씬을 다시 로드 (인게임 씬 리로드)
+        }
+
+        private void onDetectedInteractable(IInteractable interactable)
+        {
+            // var behaviour = interactable as MonoBehaviour;
+            // Debug.Log("Detected interactable : " + behaviour.gameObject.name);
+
+            var interactionUI = UIManager.Singleton.GetUI<InteractionUI>(UIList.InteractionUI); // 상호작용 UI 가져오기
+            interactionUI.AddInteractionData(interactable); // 상호작용 UI에 데이터 추가
+        }
+
+        private void OnLostInteractable(IInteractable interactable)
+        {
+            // var behaviour = interactable as MonoBehaviour;
+            // Debug.Log("Lost interactable : " + behaviour.gameObject.name);
+
+            var interactionUI = UIManager.Singleton.GetUI<InteractionUI>(UIList.InteractionUI); // 상호작용 UI 가져오기
+            interactionUI.RemoveInteractionData(interactable); // 상호작용 UI에서 데이터 제거
         }
     }
 }

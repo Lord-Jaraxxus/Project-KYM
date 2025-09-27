@@ -15,4 +15,4 @@ MonoBehaviour:
   Id: 1
   ItemName: Potion
   Description: 
-  Icon: {fileID: 0}
+  Icon: {fileID: 21300000, guid: 2780441b054a80c4c96a412b3ab0280c, type: 3}

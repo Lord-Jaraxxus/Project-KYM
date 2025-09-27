@@ -10,6 +10,9 @@ namespace KYM
 
         [field: SerializeField] public GameEventListener gameEventListener; // 게임 이벤트 리스너, 에디터에서 연결 
 
+        public string Key => "DropItem_" + itemDataSO.Id.ToString(); // 고유 키, 아이템 ID 기반
+        public Sprite InteractionIcon => itemDataSO.Icon; // 아이템 아이콘
+        public string InteractionMessage => itemDataSO.ItemName; // 아이템 이름 
 
         public void Interact() 
         {
@@ -26,6 +29,11 @@ namespace KYM
 
             gameEventListener.OnReceiveEvent("LootItem", itemDataSO.ItemName);
             Destroy(gameObject); // 아이템 획득 시 오브젝트 제거 
+        }
+
+        private void OnDisable()
+        {
+            GameEventListener.Instance.OnReceiveEvent("UpdateInventoryUI", Key); // 인벤토리 UI 업데이트 이벤트 호출
         }
     }
 }

@@ -8,6 +8,8 @@ namespace KYM
         CharacterInfoUI,
         MenuUI,
         DepthUI,
+        BulletinBoardUI,
+        DialogueUI,
 
         POPUP_END, // 게임 종료 팝업 UI
         PANEL_START, 
@@ -17,6 +19,7 @@ namespace KYM
         PlayerHUD,
         CrosshairUI,
         GameOverUI,
+        InteractionUI,
 
         PANEL_END,
     }

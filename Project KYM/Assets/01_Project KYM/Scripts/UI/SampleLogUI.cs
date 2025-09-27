@@ -18,7 +18,7 @@ namespace KYM
 
         private void Start()
         {
-            gameEventListener.OnReceiveGameEvent += AddLog;
+            GameEventListener.Instance.OnReceiveGameEvent += AddLog;
         }
 
 

@@ -15,6 +15,12 @@ namespace KYM
         private Quaternion closedRotation;
         private Quaternion openedRotation;
 
+        public string Key => throw new System.NotImplementedException();
+
+        public Sprite InteractionIcon => throw new System.NotImplementedException();
+
+        public string InteractionMessage => throw new System.NotImplementedException();
+
         private void Awake()
         {
             // 시작 시 회전 기준값 설정

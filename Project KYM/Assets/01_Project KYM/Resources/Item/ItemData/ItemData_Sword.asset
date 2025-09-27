@@ -15,4 +15,4 @@ MonoBehaviour:
   Id: 2
   ItemName: Sword
   Description: 
-  Icon: {fileID: 0}
+  Icon: {fileID: 21300000, guid: 830f92075ca77844bbcd185ffd7765d2, type: 3}

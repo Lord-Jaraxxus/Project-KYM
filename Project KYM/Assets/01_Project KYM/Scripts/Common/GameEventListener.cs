@@ -6,8 +6,12 @@ namespace KYM
 {
     public class GameEventListener : MonoBehaviour
     {
+        public static GameEventListener Instance { get; private set; }
+
         public System.Action<string, string> OnReceiveGameEvent;
-        public void OnReceiveEvent(string eventName, string eventData)
+
+        private void Awake() => Instance = this;
+        public void OnReceiveEvent(string eventName, string eventData = null)
         {
             OnReceiveGameEvent?.Invoke(eventName, eventData);
         }
