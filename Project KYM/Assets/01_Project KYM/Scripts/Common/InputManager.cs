@@ -22,6 +22,8 @@ namespace KYM
         public event System.Action OnInputPrimaryWeapon; // 1번 무기 변경 입력 이벤트
         public event System.Action OnInputSecondaryWeapon; // 2번 무기 변경 입력 이벤트
 
+        public event System.Action<float> onInputMouseScroll; // 마우스 스크롤 입력 이벤트
+
         public bool IsForceCursorVisible
         {
             get => IsForceCursorVisible;
@@ -125,6 +127,12 @@ namespace KYM
             if (Input.GetKeyDown(KeyCode.Alpha2)) 
             {
                 OnInputSecondaryWeapon?.Invoke(); // 2번 무기 변경 입력 이벤트 발생
+            }
+
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            if (scroll != 0f)
+            {
+                onInputMouseScroll?.Invoke(scroll);
             }
         }
     }

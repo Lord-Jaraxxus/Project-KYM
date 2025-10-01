@@ -11,6 +11,7 @@ namespace KYM
         [SerializeField] private Sprite interactionIcon;
         public Sprite InteractionIcon => interactionIcon;
         public string InteractionMessage => "Bulletin Board";
+        public bool IsOnceInteractable => false; // 여러 번 상호작용 가능
 
         private bool isOpen = false;
 

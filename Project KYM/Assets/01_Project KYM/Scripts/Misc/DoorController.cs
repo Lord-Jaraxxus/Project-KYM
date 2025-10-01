@@ -16,10 +16,9 @@ namespace KYM
         private Quaternion openedRotation;
 
         public string Key => throw new System.NotImplementedException();
-
         public Sprite InteractionIcon => throw new System.NotImplementedException();
-
         public string InteractionMessage => throw new System.NotImplementedException();
+        public bool IsOnceInteractable => false; // 여러 번 상호작용 가능
 
         private void Awake()
         {
